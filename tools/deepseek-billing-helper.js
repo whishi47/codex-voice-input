@@ -106,15 +106,20 @@ function loadApiKey() {
     return { key: envKey.trim(), source: "env:DEEPSEEK_API_KEY" };
   }
 
-  // 2. 配置文件
+  // 2. 配置文件 (%APPDATA%/codex-deepseek-billing/api-key.txt)
   try {
     const keyPath = CONFIG_KEY_FILE;
     if (fs.existsSync(keyPath)) {
-      const key = fs.readFileSync(keyPath, "utf8").trim();
-      if (key.length > 10 && !key.startsWith("sk-")) {
-        console.warn("⚠️  API Key 格式异常: 应以 'sk-' 开头");
+      const content = fs.readFileSync(keyPath, "utf8");
+      // 过滤注释行和空行，取第一行有效 Key
+      const lines = content.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith("#"));
+      if (lines.length > 0) {
+        const key = lines[0];
+        if (key.length > 10 && !key.startsWith("sk-")) {
+          console.warn("⚠️  API Key 格式异常: 应以 'sk-' 开头");
+        }
+        return { key, source: keyPath };
       }
-      return { key, source: keyPath };
     }
   } catch (err) {
     // 文件不存在，继续尝试其他方式
@@ -126,6 +131,20 @@ function loadApiKey() {
       const config = JSON.parse(fs.readFileSync(CONFIG_JSON_FILE, "utf8"));
       if (config.apiKey && config.apiKey.trim().length > 10) {
         return { key: config.apiKey.trim(), source: CONFIG_JSON_FILE };
+      }
+    }
+  } catch (err) {
+    // 忽略
+  }
+
+  // 4. 回退：项目本地 config/api-key.txt
+  const localKeyPath = path.join(__dirname, "..", "config", "api-key.txt");
+  try {
+    if (fs.existsSync(localKeyPath)) {
+      const content = fs.readFileSync(localKeyPath, "utf8");
+      const lines = content.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith("#"));
+      if (lines.length > 0) {
+        return { key: lines[0], source: localKeyPath };
       }
     }
   } catch (err) {
@@ -194,7 +213,12 @@ function deepseekRequest(endpoint, apiKey) {
 }
 
 async function fetchBalance(apiKey) {
-  const raw = await deepseekRequest(DEEPSEEK_BALANCE_URL, apiKey);
+  let raw;
+  try {
+    raw = await deepseekRequest(DEEPSEEK_BALANCE_URL, apiKey);
+  } catch (err) {
+    return { status: "request-error", message: err.message };
+  }
 
   if (raw.error) {
     return {
