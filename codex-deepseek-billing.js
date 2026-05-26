@@ -2337,7 +2337,12 @@
     XMLHttpRequest.prototype.send = function (body) {
       var xhr = this;
       xhr.addEventListener("loadend", function () {
-        if (xhr.__dsv4Url && /completions|responses|deepseek/i.test(xhr.__dsv4Url)) {
+        var shouldIntercept = xhr.__dsv4Url && (
+          /completions|responses/i.test(xhr.__dsv4Url)
+          || /127\.0\.0\.1:\d+/i.test(xhr.__dsv4Url)
+          || /deepseek/i.test(xhr.__dsv4Url)
+        );
+        if (shouldIntercept) {
           if (window.__codexDeepseekBillingDebug) {
             console.log("[CDS] XHR intercepted:", xhr.__dsv4Url.substring(0, 120), "length:", (xhr.responseText || "").length);
           }
@@ -2383,8 +2388,11 @@
   function processCdsFetchResponse(url, response) {
     try {
       var urlStr = typeof url === "string" ? url : (url && url.url ? url.url : "");
-      // 放宽匹配：任何包含 completions/responses 的 API 请求都处理
-      if (!/completions|responses|deepseek|api\.openai|api\.anthropic/i.test(urlStr)) return;
+      // 匹配：任何 completions/responses 请求，包括本地代理 127.0.0.1:57321
+      var shouldIntercept = /completions|responses/i.test(urlStr)
+        || /127\.0\.0\.1:\d+/i.test(urlStr)
+        || /deepseek/i.test(urlStr);
+      if (!shouldIntercept) return;
       if (window.__codexDeepseekBillingDebug) {
         console.log("[CDS] fetch intercepted:", urlStr.substring(0, 120));
       }
@@ -2428,20 +2436,37 @@
   }
 
   function processCdsApiResponse(json) {
-    if (!json || !json.usage) {
-      if (window.__codexDeepseekBillingDebug && json) {
+    if (!json) return false;
+
+    // 支持多种响应格式：OpenAI / DeepSeek / Codex++ 代理
+    var u = json.usage;
+
+    // OpenAI 流式：usage 可能在最后一个 chunk 的 choices 里
+    if (!u && json.choices && json.choices[0]) {
+      var choice = json.choices[0];
+      if (choice.usage) u = choice.usage;
+    }
+
+    // 顶层 usage（OpenAI / DeepSeek 非流式）
+    if (!u && json.object && json.object.indexOf("completion") >= 0 && json.usage) {
+      u = json.usage;
+    }
+
+    if (!u) {
+      if (window.__codexDeepseekBillingDebug) {
         console.log("[CDS] processCdsApiResponse: no usage field, keys:", Object.keys(json).join(","));
       }
       return false;
     }
-    var u = json.usage;
+
     if (window.__codexDeepseekBillingDebug) {
       console.log("[CDS] usage found:", JSON.stringify(u).substring(0, 300));
     }
 
+    // OpenAI 格式: prompt_tokens / completion_tokens / total_tokens
+    // DeepSeek 格式: prompt_tokens / completion_tokens / prompt_cache_hit_tokens / prompt_cache_miss_tokens
     var promptTokens = u.prompt_tokens || u.input_tokens || 0;
     var completionTokens = u.completion_tokens || u.output_tokens || 0;
-    // 优先用 API 原始字段，其次用 details 对象
     var cacheHit = u.prompt_cache_hit_tokens
       || (u.prompt_tokens_details && u.prompt_tokens_details.cached_tokens)
       || (u.input_tokens_details && u.input_tokens_details.cached_tokens)
