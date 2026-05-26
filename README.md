@@ -6,6 +6,34 @@
 
 ---
 
+## 🌐 语言设置
+
+插件支持 Codex++ 原生多语言切换，可在界面右上角一键切换：
+
+| 语言 | 说明 |
+|------|------|
+| 🇨🇳 **中文** | 简体中文界面 |
+| 🇬🇧 **English** | 英文界面 |
+
+> 切换语言后插件面板同步跟随，计费数据（Token / $ / 余额）不受影响。
+
+---
+
+## ⚙️ 编译选项
+
+插件可在 Codex++ 设置中搭配以下编译模式使用：
+
+| 模式 | 说明 |
+|------|------|
+| **VS Code** | 将代码直接写入本地 VS Code 工作区 |
+| **Node** | 以 Node.js 环境执行代码（适用于 Node.js 项目） |
+| **License** | 仅生成 License 文件，不执行代码 |
+| **TypeScript** | TypeScript 编译模式，保留类型检查 |
+
+> 💡 计费面板与上述编译选项无关，始终显示当前会话的 Token 消耗与费用。
+
+---
+
 ## 🎯 功能
 
 | 功能 | 说明 |
@@ -34,7 +62,7 @@
 
 ```powershell
 # 克隆仓库
-git clone https://github.com/your-username/codex-deepseek-billing.git
+git clone https://github.com/whishi47/codex-deepseek-billing.git
 cd codex-deepseek-billing
 
 # 运行安装脚本
@@ -153,10 +181,10 @@ codex-deepseek-billing/
   "name": "Codex DeepSeek Billing",
   "description": "DeepSeek V4 专用计费面板: token 消耗、费用($)、缓存命中率、余额",
   "version": "1.0.0",
-  "author": "your-github-username",
+  "author": "whishi47",
   "tags": ["deepseek", "billing", "tokens", "cost", "balance"],
-  "homepage": "https://github.com/your-username/codex-deepseek-billing",
-  "script_url": "https://raw.githubusercontent.com/your-username/market-repo/main/scripts/codex-deepseek-billing.js",
+  "homepage": "https://github.com/whishi47/codex-deepseek-billing",
+  "script_url": "https://raw.githubusercontent.com/whishi47/codex-deepseek-billing/main/codex-deepseek-billing.js",
   "sha256": "<计算脚本的 SHA-256>"
 }
 ```
