@@ -295,7 +295,12 @@
       #${ROOT_ID} {
         --cds-ring-size: 22px;
         --cds-ring-width: 3px;
-        --cds-inline-max-width: 210px;
+        --cds-inline-max-width: 260px;
+        --cds-blue: #4ea1ff;
+        --cds-cyan: #22d3ee;
+        --cds-green: #4ade80;
+        --cds-amber: #f59e0b;
+        --cds-red: #ef4444;
         position: fixed;
         top: var(--cds-float-y, 10px);
         left: var(--cds-float-x, 16px);
@@ -311,7 +316,6 @@
         overflow: visible;
         pointer-events: auto;
         user-select: none;
-        /* Codex/Electron 顶部可能是窗口拖拽区；不退出拖拽区时，真实鼠标 hover 会被系统层吞掉。 */
         -webkit-app-region: no-drag;
       }
 
@@ -322,19 +326,19 @@
         transform: none;
         flex: 0 0 auto;
         align-self: center;
-        max-width: min(42vw, 360px);
+        max-width: min(48vw, 420px);
         margin-right: 8px;
         justify-content: flex-start;
       }
 
       #${ROOT_ID}[data-placement="inline"] .cds-card {
-        width: var(--cds-ring-size);
-        max-width: var(--cds-ring-size);
-        padding: 0;
-        border: 0;
-        background: transparent;
-        box-shadow: none;
-        backdrop-filter: none;
+        width: auto;
+        max-width: var(--cds-inline-max-width);
+        padding: 5px 10px;
+        border: 1px solid rgba(78, 161, 255, 0.25);
+        background: rgba(12, 16, 28, 0.82);
+        box-shadow: 0 2px 12px rgba(78, 161, 255, 0.08);
+        border-radius: 10px;
       }
 
       #${ROOT_ID}[data-placement="inline"] .cds-row {
@@ -372,24 +376,33 @@
         min-width: 0;
         max-width: var(--cds-inline-max-width);
         padding: 5px 8px;
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        border-radius: 999px;
-        background: rgba(20, 22, 28, 0.78);
-        color: rgba(255, 255, 255, 0.92);
-        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.18);
+        border: 1px solid rgba(78, 161, 255, 0.2);
+        border-radius: 10px;
+        background: rgba(12, 16, 28, 0.84);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+        color: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(78, 161, 255, 0.06);
         font: 12px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         overflow: visible;
-        backdrop-filter: blur(10px);
         pointer-events: auto;
         -webkit-app-region: no-drag;
+        transition: border-color 200ms ease, box-shadow 200ms ease;
+      }
+
+      #${ROOT_ID} .cds-card:hover {
+        border-color: rgba(78, 161, 255, 0.4);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(78, 161, 255, 0.12);
       }
 
       #${ROOT_ID}[data-placement="floating"] .cds-card {
-        max-width: 240px;
-        padding: 8px 10px 9px;
-        border-radius: 8px;
-        background: rgba(20, 22, 28, 0.88);
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.24);
+        max-width: 280px;
+        padding: 10px 12px 11px;
+        border-radius: 12px;
+        background: rgba(12, 16, 28, 0.92);
+        backdrop-filter: blur(24px) saturate(160%);
+        -webkit-backdrop-filter: blur(24px) saturate(160%);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(78, 161, 255, 0.1);
       }
 
       #${ROOT_ID}[data-placement="floating"] .cds-row {
@@ -426,7 +439,7 @@
         height: var(--cds-ring-size);
         border-radius: 50%;
         background:
-          conic-gradient(var(--cds-fill-color, #4ade80) 0deg, var(--cds-fill-color, #4ade80) var(--cds-ring-angle, 0deg), rgba(255, 255, 255, 0.18) var(--cds-ring-angle, 0deg) 360deg);
+          conic-gradient(var(--cds-fill-color, var(--cds-blue)) 0deg, var(--cds-fill-color, var(--cds-blue)) var(--cds-ring-angle, 0deg), rgba(255, 255, 255, 0.12) var(--cds-ring-angle, 0deg) 360deg);
       }
 
       #${ROOT_ID} .cds-ring::after {
@@ -434,7 +447,7 @@
         position: absolute;
         inset: var(--cds-ring-width);
         border-radius: 50%;
-        background: rgba(20, 22, 28, 0.96);
+        background: rgba(12, 16, 28, 0.92);
       }
 
       #${ROOT_ID} .cds-value {
@@ -453,12 +466,12 @@
         height: 7px;
         overflow: hidden;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.1);
       }
 
       #${ROOT_ID} .cds-fill {
-        --cds-fill-color: #4ade80;
-        --cds-fill-gradient: linear-gradient(90deg, #4ea1ff, #4ade80);
+        --cds-fill-color: var(--cds-blue);
+        --cds-fill-gradient: linear-gradient(90deg, var(--cds-blue), var(--cds-cyan));
         width: 0%;
         height: 100%;
         border-radius: inherit;
@@ -502,24 +515,24 @@
       #${ROOT_ID} .cds-context-card[data-level="warn"] .cds-ring,
       #${ROOT_ID} .cds-provider-card[data-level="warn"] .cds-ring,
       #${ROOT_ID} .cds-provider-card[data-level="warn"] .cds-fill {
-        --cds-fill-color: #f97316;
-        --cds-fill-gradient: linear-gradient(90deg, #f59e0b, #f97316);
+        --cds-fill-color: var(--cds-amber);
+        --cds-fill-gradient: linear-gradient(90deg, var(--cds-amber), #f97316);
       }
 
       #${ROOT_ID} .cds-context-card[data-level="danger"] .cds-fill,
       #${ROOT_ID} .cds-context-card[data-level="danger"] .cds-ring,
       #${ROOT_ID} .cds-provider-card[data-level="danger"] .cds-ring,
       #${ROOT_ID} .cds-provider-card[data-level="danger"] .cds-fill {
-        --cds-fill-color: #ef4444;
-        --cds-fill-gradient: linear-gradient(90deg, #fb7185, #ef4444);
+        --cds-fill-color: var(--cds-red);
+        --cds-fill-gradient: linear-gradient(90deg, #fb7185, var(--cds-red));
       }
 
       #${ROOT_ID} .cds-context-card[data-level="notice"] .cds-fill,
       #${ROOT_ID} .cds-context-card[data-level="notice"] .cds-ring,
       #${ROOT_ID} .cds-provider-card[data-level="notice"] .cds-ring,
       #${ROOT_ID} .cds-provider-card[data-level="notice"] .cds-fill {
-        --cds-fill-color: #38bdf8;
-        --cds-fill-gradient: linear-gradient(90deg, #22d3ee, #38bdf8);
+        --cds-fill-color: var(--cds-cyan);
+        --cds-fill-gradient: linear-gradient(90deg, var(--cds-cyan), var(--cds-blue));
       }
 
       #${ROOT_ID} .cds-context-card[data-level="critical"] .cds-fill,
@@ -550,17 +563,18 @@
         min-width: 240px;
         max-width: min(560px, calc(100vw - 32px));
         padding: 9px 10px 10px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        border-radius: 8px;
-        background: rgba(16, 18, 24, 0.94);
+        border: 1px solid rgba(78, 161, 255, 0.16);
+        border-radius: 10px;
+        background: rgba(12, 16, 28, 0.94);
+        backdrop-filter: blur(20px) saturate(140%);
+        -webkit-backdrop-filter: blur(20px) saturate(140%);
         color: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+        box-shadow: 0 10px 36px rgba(0, 0, 0, 0.36);
         font: 12px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         opacity: 0;
         transform: translateY(-4px);
         pointer-events: none;
         visibility: hidden;
-        backdrop-filter: blur(12px);
         -webkit-app-region: no-drag;
         transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
       }
