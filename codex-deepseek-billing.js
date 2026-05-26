@@ -260,7 +260,11 @@
     cdsBalance: null,
     cdsBalanceLevel: "unknown",
     cdsBalanceTimestamp: 0,
+    cdsApiKey: null,
+    cdsApiKeySource: null,
     cdsApiMonitorInstalled: false,
+    cdsBalanceFetching: false,
+    cdsBalanceTimer: null,
     cdsTurnSeq: 0,
   };
 
@@ -2186,6 +2190,56 @@
     state.cdsBalanceTimestamp = summary.timestamp || Date.now();
   }
 
+  // 直接从页面调 /user/balance (无需 Helper，Key 从拦截到的请求头提取)
+  function fetchBalanceFromPage() {
+    if (state.cdsBalanceFetching || !state.cdsApiKey) return;
+    state.cdsBalanceFetching = true;
+
+    var req = new XMLHttpRequest();
+    req.open("GET", "https://api.deepseek.com/user/balance", true);
+    req.setRequestHeader("Accept", "application/json");
+    req.setRequestHeader("Authorization", "Bearer " + state.cdsApiKey);
+    req.timeout = 10000;
+
+    req.onloadend = function () {
+      state.cdsBalanceFetching = false;
+      try {
+        if (req.status >= 200 && req.status < 300) {
+          var json = JSON.parse(req.responseText);
+          var info = (json.balance_infos || []).find(function (b) {
+            return b.currency === "CNY" || b.currency === "USD";
+          });
+          if (info) {
+            updateCdsBalance({
+              status: "ok",
+              balance: {
+                total: parseFloat(info.total_balance) || 0,
+                granted: parseFloat(info.granted_balance) || 0,
+                toppedUp: parseFloat(info.topped_up_balance) || 0,
+                currency: info.currency,
+                isAvailable: json.is_available === true,
+              },
+              balanceLevel: getBalanceLevel(parseFloat(info.total_balance) || 0),
+              timestamp: Date.now(),
+            });
+          }
+        }
+      } catch (e) {}
+    };
+
+    req.onerror = function () { state.cdsBalanceFetching = false; };
+    req.ontimeout = function () { state.cdsBalanceFetching = false; };
+    req.send();
+  }
+
+  function startBalancePolling() {
+    if (state.cdsBalanceTimer) return;
+    // 每 30 秒查一次余额
+    state.cdsBalanceTimer = setInterval(function () {
+      if (state.cdsApiKey) fetchBalanceFromPage();
+    }, 30000);
+  }
+
   // SSE 流式解析: 从 data: 行中提取 JSON 片段
   function extractSSEFragments(text) {
     return String(text || "")
@@ -2201,15 +2255,62 @@
     if (state.cdsApiMonitorInstalled) return;
     state.cdsApiMonitorInstalled = true;
 
-    // 拦截 fetch (支持流式 SSE)
+    // 拦截 fetch (支持流式 SSE) + 捕获 API Key
     var origFetch = window.fetch;
     window.fetch = function () {
       var args = arguments;
+      var url = args[0];
+      var urlStr = typeof url === "string" ? url : (url && url.url ? url.url : "");
+      var options = args[1];
+
+      // 捕获 DeepSeek API Key (从 Authorization 头)
+      if (!state.cdsApiKey && /deepseek/i.test(urlStr) && options && options.headers) {
+        try {
+          var auth = null;
+          if (options.headers instanceof Headers) {
+            auth = options.headers.get("Authorization") || options.headers.get("authorization");
+          } else if (typeof options.headers === "object") {
+            auth = options.headers["Authorization"] || options.headers["authorization"];
+          }
+          if (auth && auth.indexOf("Bearer ") === 0) {
+            state.cdsApiKey = auth.slice(7).trim();
+            state.cdsApiKeySource = "page-intercept";
+            // 首次捕获到 Key 后立即查余额
+            fetchBalanceFromPage();
+          }
+        } catch (e) {}
+      }
+
       var responsePromise = origFetch.apply(this, args);
       responsePromise.then(function (response) {
-        processCdsFetchResponse(args[0], response.clone());
+        processCdsFetchResponse(url, response.clone());
       }).catch(function () {});
       return responsePromise;
+    };
+
+    // 同时检查 localStorage 是否有 Codex++ 存储的 Key
+    if (!state.cdsApiKey) {
+      try {
+        var storedKey = localStorage.getItem("codex-api-key")
+          || localStorage.getItem("deepseek-api-key")
+          || localStorage.getItem("apiKey");
+        if (storedKey && storedKey.trim().length > 10) {
+          state.cdsApiKey = storedKey.trim();
+          state.cdsApiKeySource = "localStorage";
+          fetchBalanceFromPage();
+        }
+      } catch (e) {}
+    }
+
+    // 拦截 XMLHttpRequest (也抓 Key)
+    var origSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
+    XMLHttpRequest.prototype.setRequestHeader = function (name, value) {
+      if (!state.cdsApiKey && /authorization/i.test(name) && value && value.indexOf("Bearer ") === 0) {
+        state.cdsApiKey = value.slice(7).trim();
+        state.cdsApiKeySource = "xhr-intercept";
+        fetchBalanceFromPage();
+      }
+      return origSetRequestHeader.apply(this, arguments);
     };
 
     // 拦截 XMLHttpRequest
@@ -4138,6 +4239,7 @@
 
   installStyle();
   installCdsApiMonitor();
+  startBalancePolling();
   installFetchCapture();
   installWebSocketCapture();
   installPostMessageCapture();
