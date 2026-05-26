@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/logo.png" alt="Codex DeepSeek Billing" width="640"/>
+  <img src="images/logo.svg" width="160" alt="Codex DeepSeek Billing"/>
 </p>
 
 <p align="center">
