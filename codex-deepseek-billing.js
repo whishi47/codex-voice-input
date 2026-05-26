@@ -2278,7 +2278,7 @@
       var options = args[1];
 
       // 捕获 DeepSeek API Key (从 Authorization 头)
-      if (!state.cdsApiKey && /deepseek/i.test(urlStr) && options && options.headers) {
+      if (!state.cdsApiKey && /deepseek|completions|responses/i.test(urlStr) && options && options.headers) {
         try {
           var auth = null;
           if (options.headers instanceof Headers) {
@@ -2337,7 +2337,10 @@
     XMLHttpRequest.prototype.send = function (body) {
       var xhr = this;
       xhr.addEventListener("loadend", function () {
-        if (xhr.__dsv4Url && /deepseek|chat\/completions/i.test(xhr.__dsv4Url)) {
+        if (xhr.__dsv4Url && /completions|responses|deepseek/i.test(xhr.__dsv4Url)) {
+          if (window.__codexDeepseekBillingDebug) {
+            console.log("[CDS] XHR intercepted:", xhr.__dsv4Url.substring(0, 120), "length:", (xhr.responseText || "").length);
+          }
           try { processCdsResponseText(xhr.responseText || ""); } catch (e) {}
         }
       });
@@ -2351,6 +2354,9 @@
         var socket = new (Function.prototype.bind.apply(NativeWS, [null].concat(Array.prototype.slice.call(arguments))))();
         socket.addEventListener("message", function (event) {
           try {
+            if (window.__codexDeepseekBillingDebug) {
+              console.log("[CDS] WS message, type:", typeof event.data, "size:", event.data instanceof Blob ? event.data.size : (event.data || "").length);
+            }
             if (typeof event.data === "string") {
               processCdsResponseText(event.data);
             } else if (event.data instanceof Blob && event.data.size <= 512000) {
@@ -2377,24 +2383,42 @@
   function processCdsFetchResponse(url, response) {
     try {
       var urlStr = typeof url === "string" ? url : (url && url.url ? url.url : "");
-      if (!/deepseek|chat\/completions|responses/i.test(urlStr)) return;
+      // 放宽匹配：任何包含 completions/responses 的 API 请求都处理
+      if (!/completions|responses|deepseek|api\.openai|api\.anthropic/i.test(urlStr)) return;
+      if (window.__codexDeepseekBillingDebug) {
+        console.log("[CDS] fetch intercepted:", urlStr.substring(0, 120));
+      }
       response.text().then(function (text) {
+        if (window.__codexDeepseekBillingDebug) {
+          console.log("[CDS] fetch response length:", text.length, "preview:", text.substring(0, 200));
+        }
         processCdsResponseText(text);
-      }).catch(function () {});
+      }).catch(function (err) {
+        if (window.__codexDeepseekBillingDebug) console.log("[CDS] fetch response error:", err);
+      });
     } catch (e) {}
   }
 
   function processCdsResponseText(text) {
     if (!text || text.length < 10) return;
+    if (window.__codexDeepseekBillingDebug) {
+      console.log("[CDS] processCdsResponseText length:", text.length, "startsWith:", text.substring(0, 80));
+    }
 
     // 先尝试直接 JSON 解析 (非流式)
     try {
       var json = JSON.parse(text);
+      if (window.__codexDeepseekBillingDebug) {
+        console.log("[CDS] parsed JSON, has usage:", !!json.usage, "keys:", Object.keys(json).join(","));
+      }
       if (processCdsApiResponse(json)) return;
     } catch (e) {}
 
     // SSE 流式解析: 从 data: 行中提取 usage
     var fragments = extractSSEFragments(text);
+    if (window.__codexDeepseekBillingDebug) {
+      console.log("[CDS] SSE fragments count:", fragments.length);
+    }
     for (var i = 0; i < fragments.length; i++) {
       try {
         var frag = JSON.parse(fragments[i]);
@@ -2404,8 +2428,16 @@
   }
 
   function processCdsApiResponse(json) {
-    if (!json || !json.usage) return false;
+    if (!json || !json.usage) {
+      if (window.__codexDeepseekBillingDebug && json) {
+        console.log("[CDS] processCdsApiResponse: no usage field, keys:", Object.keys(json).join(","));
+      }
+      return false;
+    }
     var u = json.usage;
+    if (window.__codexDeepseekBillingDebug) {
+      console.log("[CDS] usage found:", JSON.stringify(u).substring(0, 300));
+    }
 
     var promptTokens = u.prompt_tokens || u.input_tokens || 0;
     var completionTokens = u.completion_tokens || u.output_tokens || 0;
@@ -2420,7 +2452,12 @@
       || (u.prompt_tokens_details && u.prompt_tokens_details.cache_write_tokens)
       || 0;
 
-    if (promptTokens === 0 && completionTokens === 0) return false;
+    if (promptTokens === 0 && completionTokens === 0) {
+      if (window.__codexDeepseekBillingDebug) {
+        console.log("[CDS] tokens are 0, skipping");
+      }
+      return false;
+    }
 
     state.cdsSessionInputTokens += promptTokens;
     state.cdsSessionOutputTokens += completionTokens;
@@ -2430,6 +2467,10 @@
     state.cdsSessionCost = calculateCdsCost();
     state.cdsSessionCostCNY = state.cdsSessionCost * USD_TO_CNY;
     state.cdsSessionCacheSavings = calculateCacheSavings();
+
+    if (window.__codexDeepseekBillingDebug) {
+      console.log("[CDS] updated state — input:", state.cdsSessionInputTokens, "output:", state.cdsSessionOutputTokens, "cost:", state.cdsSessionCost.toFixed(6));
+    }
 
     return true;
   }
