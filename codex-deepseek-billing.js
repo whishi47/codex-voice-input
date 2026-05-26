@@ -4317,15 +4317,29 @@
     },
   };
 
+  // ====== 启动诊断日志 (DEBUG MODE) ======
+  window.__codexDeepseekBillingDebug = true; // 默认开启，方便排查
+  console.log("[CDS] ========================================");
+  console.log("[CDS] codex-deepseek-billing v1.0 已加载");
+  console.log("[CDS] window.fetch 类型:", typeof window.fetch);
+  console.log("[CDS] XMLHttpRequest 类型:", typeof XMLHttpRequest);
+  console.log("[CDS] WebSocket 类型:", typeof window.WebSocket);
+  console.log("[CDS] state.cdsApiKey:", state.cdsApiKey || "(未捕获)");
+  console.log("[CDS] ========================================");
+
   installStyle();
+  console.log("[CDS] installStyle ✅");
   installCdsApiMonitor();
+  console.log("[CDS] installCdsApiMonitor ✅ | state.cdsApiMonitorInstalled:", state.cdsApiMonitorInstalled);
   startBalancePolling();
+  console.log("[CDS] startBalancePolling ✅");
   installFetchCapture();
   installWebSocketCapture();
   installPostMessageCapture();
   installProviderSummaryListener();
   updateMeter();
   installObserver();
+  console.log("[CDS] 全部初始化完成，等待 API 请求...");
   state.timer = window.setInterval(updateMeter, UPDATE_INTERVAL_MS);
 })();
 
