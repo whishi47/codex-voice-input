@@ -1,0 +1,11 @@
+{
+  "id": "codex-deepseek-billing",
+  "name": "Codex DeepSeek Billing",
+  "description": "DeepSeek V4 专用计费面板 - 实时显示 token 消耗、费用($/¥)、缓存命中率、缓存节省、账户余额与低余额警告。",
+  "version": "1.0.0",
+  "author": "",
+  "tags": ["deepseek", "billing", "tokens", "cost", "balance", "cache", "codex"],
+  "homepage": "",
+  "script_url": "",
+  "sha256": "83c678f66f57ccc2ca128bf75654db8c411e669316b1e97195213e7ba708e97d"
+}

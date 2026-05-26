@@ -1,0 +1,24 @@
+{
+  "name": "codex-deepseek-billing",
+  "version": "1.0.0",
+  "description": "Codex++ 插件 - DeepSeek V4 计费面板。实时显示 token 消耗、费用、缓存命中率和账户余额",
+  "main": "codex-deepseek-billing.js",
+  "scripts": {
+    "install": "powershell -ExecutionPolicy Bypass -File tools/install.ps1",
+    "uninstall": "powershell -ExecutionPolicy Bypass -File tools/uninstall.ps1",
+    "helper": "node tools/deepseek-billing-helper.js",
+    "validate": "node tools/deepseek-billing-helper.js --validate --once"
+  },
+  "keywords": [
+    "deepseek",
+    "v4",
+    "codex",
+    "billing",
+    "codex-plus-plus"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

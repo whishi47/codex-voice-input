@@ -1,0 +1,6 @@
+{
+  "model": "deepseek-v4-flash",
+  "warnBalance": 5,
+  "dangerBalance": 2,
+  "comment": "warnBalance: 余额低于此金额(¥)时显示黄色警告; dangerBalance: 余额低于此金额时显示红色警告"
+}

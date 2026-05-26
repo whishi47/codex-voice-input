@@ -1,0 +1,7 @@
+node_modules/
+cankao/
+.workbuddy/
+.env
+config/api-key.txt
+*.log
+.DS_Store
