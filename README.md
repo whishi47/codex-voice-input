@@ -1,198 +1,218 @@
-# Codex DeepSeek Billing for Codex++
+<p align="center">
+  <img src="docs/logo.svg" alt="Codex DeepSeek Billing" width="640"/>
+</p>
 
-> Codex 桌面应用的 DeepSeek V4 专用计费面板插件。
+<p align="center">
+  <strong>English</strong>
+  &nbsp;·&nbsp;
+  <a href="./README.zh-CN.md">简体中文</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/whishi47/codex-deepseek-billing">GitHub</a>
+  &nbsp;·&nbsp;
+  <a href="./AGENTS.md">Agent Guide</a>
+</p>
 
-实时显示 DeepSeek V4 API 的 **token 消耗、费用 ($)、缓存命中率、账户余额**。
+<p align="center">
+  <a href="https://github.com/whishi47/codex-deepseek-billing"><img src="https://img.shields.io/badge/version-1.0.0-blue.svg?style=flat-square&labelColor=161b22&color=2ea043&logo=git&logoColor=white" alt="version"/></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square&labelColor=161b22&color=8b949e" alt="license"/></a>
+  <a href="https://github.com/whishi47/codex-deepseek-billing/stargazers"><img src="https://img.shields.io/badge/stars-0-yellow.svg?style=flat-square&labelColor=161b22&color=dbab09&logo=github&logoColor=white" alt="stars"/></a>
+  <a href="https://github.com/whishi47/codex-deepseek-billing"><img src="https://img.shields.io/badge/Codex++-plugin-58a6ff.svg?style=flat-square&labelColor=161b22&logo=react&logoColor=white" alt="Codex++"/></a>
+  <a href="https://github.com/whishi47/codex-deepseek-billing/graphs/contributors"><img src="https://img.shields.io/badge/contributors-1-bc8cff.svg?style=flat-square&labelColor=161b22&logo=github&logoColor=white" alt="contributors"/></a>
+</p>
 
----
+<br/>
 
-## 🌐 语言设置
+<h3 align="center">Real-time DeepSeek V4 cost tracking for your Codex++ coding sessions.</h3>
+<p align="center">Every token counted. Every dollar tracked. Cache hits, costs, balance — all visible without leaving your workflow.</p>
 
-插件支持 Codex++ 原生多语言切换，可在界面右上角一键切换：
+<br/>
 
-| 语言 | 说明 |
-|------|------|
-| 🇨🇳 **中文** | 简体中文界面 |
-| 🇬🇧 **English** | 英文界面 |
+> [!TIP]
+> **Know what you spend before you get the bill.** DeepSeek V4 pricing is non-trivial — input vs. output, cache-hit vs. cache-miss, the 50× difference between them. This plugin surfaces it all in real-time, inline with your Codex++ conversations.
 
-> 切换语言后插件面板同步跟随，计费数据（Token / $ / 余额）不受影响。
+> [!IMPORTANT]
+> **Designed for Codex++ user script system.** Drop the script in, enable it, done. Works alongside other Codex++ plugins without conflict. Open source, auditable, no telemetry.
 
----
+<br/>
 
-## ⚙️ 编译选项
+## Features
 
-插件可在 Codex++ 设置中搭配以下编译模式使用：
+- **Token-level breakdown** — input tokens, output tokens, cache-hit tokens, cache-miss tokens, cache-write tokens — all counted separately
+- **Real-time cost** — auto-calculated using DeepSeek V4 Flash & Pro pricing. Updates after every message
+- **Cache economics** — hit rate percentage, savings from cache hits. At 99% hit rate, input cost drops from $0.14/1M to ~$0.0028/1M
+- **Balance monitoring** — live balance via DeepSeek `/user/balance` API. Color-coded warnings: ¥5 (yellow), ¥2 (red blinking)
+- **Dual display modes** — inline mode (sits inside the conversation panel) or float mode (draggable overlay). Switch via right-click
+- **Dual currency** — USD and CNY side by side. Exchange rate: 7.2
+- **Multi-layer token detection** — React state scanning, DOM text extraction, fetch/XHR/WebSocket interception, SSE streaming response parsing
+- **Balance helper** — standalone Node.js process (`deepseek-billing-helper`) that polls balance and pushes it to the Codex++ page via CDP
 
-| 模式 | 说明 |
-|------|------|
-| **VS Code** | 将代码直接写入本地 VS Code 工作区 |
-| **Node** | 以 Node.js 环境执行代码（适用于 Node.js 项目） |
-| **License** | 仅生成 License 文件，不执行代码 |
-| **TypeScript** | TypeScript 编译模式，保留类型检查 |
+<br/>
 
-> 💡 计费面板与上述编译选项无关，始终显示当前会话的 Token 消耗与费用。
+## Install
 
----
-
-## 🎯 功能
-
-| 功能 | 说明 |
-|------|------|
-| **Context 使用率** | 进度条显示当前会话上下文窗口使用情况 |
-| **Token 统计** | 分别统计输入/输出 token 数量 |
-| **缓存命中率** | V4-Flash 缓存命中仅 $0.0028/1M，比未命中便宜 50 倍 |
-| **费用计算** | 自动按 DeepSeek V4 定价换算为美元 |
-| **余额监控** | 通过 `deepseek-billing-helper` 实时查询账户余额 |
-| **余额警告** | 余额 < ¥5 黄色提醒，< ¥2 红色闪烁 |
-| **双模式** | 内联模式（嵌入对话区）/ 悬浮模式（自由拖动） |
-| **右键菜单** | 右键切换模式 |
-
----
-
-## 📦 安装
-
-### 前置条件
-
-1. [Codex 桌面应用](https://codex.gallery/) 已安装
-2. Codex++ 已安装
-3. DeepSeek API Key（[获取](https://platform.deepseek.com/api_keys)）
-4. Node.js ≥ 14
-
-### 一键安装
-
-```powershell
-# 克隆仓库
+```bash
+# Clone the repo
 git clone https://github.com/whishi47/codex-deepseek-billing.git
 cd codex-deepseek-billing
 
-# 运行安装脚本
+# One-shot install
 powershell -ExecutionPolicy Bypass -File tools/install.ps1
 ```
 
-### 手动安装
+Requires [Codex desktop app](https://codex.gallery/) with [Codex++](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket) installed, and a [DeepSeek API key](https://platform.deepseek.com/api_keys). Node.js ≥ 14 for the balance helper.
 
-**1. 设置 API Key**
+### Quick reference
 
-编辑 `%APPDATA%\codex-deepseek-billing\api-key.txt`，填入你的 DeepSeek API Key。
+| Step | What |
+|------|------|
+| `tools/install.ps1` | One-shot: copies files, prompts for API key, starts helper |
+| `config/api-key.txt` | Edit this to set your DeepSeek API key |
+| `node tools/deepseek-billing-helper.js` | Standalone — polls `/user/balance` every 30s |
+| `--once` | Single balance check, no daemon |
+| `--validate` | Verify your API key is valid |
+| `--no-cdp` | Skip CDP, print to stdout |
 
-**2. 复制脚本到 Codex++**
+### Manual install
 
-```
-复制 codex-deepseek-billing.js 到:
-%APPDATA%\Codex++\user_scripts\codex-deepseek-billing.js
-```
+1. Copy `codex-deepseek-billing.js` to `%APPDATA%\Codex++\user_scripts\`
+2. Open Codex++ → Extensions → **Enable user scripts**
+3. Verify the script appears in the list and is toggled **on**
+4. (Optional) Start the balance helper: `node tools/deepseek-billing-helper.js`
 
-**3. 启用 Codex++ 用户脚本**
+<br/>
 
-打开 Codex++ 管理工具 → 增强功能 → 启用用户脚本。
+## DeepSeek V4 pricing
 
-**4. 启动余额查询助手（可选，推荐）**
-
-```bash
-npm install
-node tools/deepseek-billing-helper.js
-```
-
-或使用环境变量:
-```bash
-set DEEPSEEK_API_KEY=sk-xxx
-node tools/deepseek-billing-helper.js --verbose
-```
-
-### 验证安装
-
-```bash
-# 验证 API Key
-node tools/deepseek-billing-helper.js --validate
-
-# 手动推送一次余额
-node tools/deepseek-billing-helper.js --once
-```
-
----
-
-## 📊 DeepSeek V4 定价
-
-| 模型 | 输入 (缓存未命中) | 输入 (缓存命中) | 输出 |
-|------|:---:|:---:|:---:|
+| Model | Input (cache miss) | Input (cache hit) | Output |
+|-------|:------------------:|:-----------------:|:------:|
 | **V4-Flash** | $0.14 / 1M | $0.0028 / 1M | $0.28 / 1M |
 | **V4-Pro** (75% off) | $0.435 / 1M | $0.003625 / 1M | $0.87 / 1M |
 
-> 💡 **缓存命中率是 DeepSeek V4 省钱的关键**。99% 命中率时，输入成本接近 $0.0028/1M，几乎可以忽略。
+> 💡 **Cache hit rate is the single biggest cost lever.** At 99% hit, input is practically free ($0.0028/1M). The plugin tracks hit rate in real-time so you can optimize your session structure.
 
----
+<br/>
 
-## 🏗️ 项目结构
+## Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│              Codex++ Page (Electron)          │
+│  ┌───────────────────────────────────────┐  │
+│  │  codex-deepseek-billing.js           │  │
+│  │                                       │  │
+│  │  • Token detection (React/DOM)        │  │
+│  │  • API monitoring (fetch/XHR/WS)      │  │
+│  │  • Cost calculation (V4 pricing)      │  │
+│  │  • UI panel (inline / float)          │  │
+│  └──────────────┬────────────────────────┘  │
+│                 │ CustomEvent                │
+│  ┌──────────────▼────────────────────────┐  │
+│  │  deepseek-billing-helper.js           │  │
+│  │  (standalone Node.js process)          │  │
+│  │                                       │  │
+│  │  • Reads API key from config          │  │
+│  │  • Calls /user/balance every 30s      │  │
+│  │  • Pushes sanitized balance to page   │  │
+│  └──────────────────────────────────────┘  │
+└─────────────────────────────────────────────┘
+```
+
+### How detection works
+
+The plugin doesn't just read the DOM — it taps into the data flow at every layer:
+
+1. **React state scan** — reads the internal React fiber tree for token usage hooks
+2. **DOM text scan** — backs up React reads with direct DOM text extraction
+3. **fetch/XHR intercept** — wraps `fetch()` and `XMLHttpRequest` to capture API response payloads
+4. **WebSocket intercept** — captures streaming token counts from WebSocket frames
+5. **SSE stream parser** — extracts `data:` lines from streaming responses and reassembles usage JSON
+
+<br/>
+
+## How it compares
+
+|                          | Codex DeepSeek Billing | Manual tracking | CCM (generic) |
+|--------------------------|:----------------------:|:---------------:|:-------------:|
+| DeepSeek V4 pricing      | ✅ built-in           | ❌              | ❌             |
+| Cache hit rate           | ✅ real-time          | ❌              | ❌             |
+| Cache savings ($)        | ✅ auto-computed      | ❌              | ❌             |
+| Balance monitoring       | ✅ live API           | ❌              | ❌             |
+| Dual currency (USD/CNY)  | ✅ side-by-side       | ❌              | ❌             |
+| SSE streaming parse      | ✅                    | ❌              | ❌             |
+| Inline / float dual mode | ✅                    | ❌              | ❌             |
+| Open source (MIT)        | ✅                    | —               | ✅             |
+| No telemetry             | ✅                    | —               | ✅             |
+| Codex++ user script      | ✅ dedicated          | —               | ✅             |
+
+<br/>
+
+## What this is and isn't
+
+> [!IMPORTANT]
+> Codex DeepSeek Billing is a focused tool. Some things it deliberately does — and doesn't do.
+
+- **DeepSeek V4 only.** This is intentional — V4's pricing model (cache-hit vs cache-miss, Flash vs Pro) is what makes real-time tracking meaningful. For other providers, the math is different.
+- **Read-only, no API calls of its own.** The plugin observes tokens from the Codex++ page itself. It never sends your data anywhere. The only external call is the balance helper, which hits DeepSeek's `/user/balance` endpoint with your own API key.
+- **Not a proxy.** It doesn't sit between you and DeepSeek. It sits beside your Codex++ session, watching what goes through.
+- **Not a profiler.** It shows cost, not performance. For latency or throughput analysis, use the browser's DevTools.
+
+<br/>
+
+## Project structure
 
 ```
 codex-deepseek-billing/
-├── codex-deepseek-billing.js   # 主注入脚本 (Codex++ 用户脚本)
-├── tools/
-│   ├── deepseek-billing-helper.js # 余额查询 Node.js 助手
-│   ├── install.ps1                # Windows 一键安装
-│   └── uninstall.ps1              # 卸载脚本
+├── codex-deepseek-billing.js    # Main script (~150KB, 4149 lines)
+├── AGENTS.md                     # Agent-based installation guide
+├── market-entry.json             # Script market submission manifest
+├── package.json                  # ws dependency
 ├── config/
-│   ├── api-key.txt                # API Key 模板
-│   └── config.json                # 插件配置
-├── package.json
-└── README.md
+│   ├── api-key.txt               # API key template
+│   └── config.json               # Balance thresholds
+└── tools/
+    ├── deepseek-billing-helper.js # Balance polling daemon
+    ├── install.ps1               # Windows installer
+    └── uninstall.ps1             # Windows uninstaller
 ```
 
----
+<br/>
 
-## 🔧 架构说明
+## To the Script Market
 
-```
-┌──────────────────────────────────────────────┐
-│                 Codex 页面                     │
-│  ┌────────────────────────────────────────┐  │
-│  │   codex-deepseek-billing.js         │  │
-│  │                                        │  │
-│  │  • Token 检测 (React State / DOM)      │  │
-│  │  • API 监控 (fetch/XHR 拦截)           │  │
-│  │  • 费用计算 (V4 定价)                  │  │
-│  │  • UI 面板 (内联/悬浮)                 │  │
-│  └──────────────┬─────────────────────────┘  │
-│                 │ CustomEvent                 │
-│  ┌──────────────▼─────────────────────────┐  │
-│  │   deepseek-billing-helper.js           │  │
-│  │   (独立 Node.js 进程)                  │  │
-│  │                                        │  │
-│  │  • 读 API Key                          │  │
-│  │  • 调 /user/balance                    │  │
-│  │  • 脱敏推送到页面                       │  │
-│  └────────────────────────────────────────┘  │
-└──────────────────────────────────────────────┘
-```
+Submit a PR to [CodexPlusPlusScriptMarket](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket):
 
----
-
-## 📤 发布
-
-在脚本市场仓库提 PR:
-
-1. Fork 市场仓库
-2. 将 `codex-deepseek-billing.js` 复制到 `scripts/` 目录
-3. 在 `index.json` 的 `scripts` 数组中添加:
+1. Fork the market repo
+2. Copy `codex-deepseek-billing.js` to `scripts/` in your fork
+3. Add an entry to `index.json`:
 
 ```json
 {
   "id": "codex-deepseek-billing",
   "name": "Codex DeepSeek Billing",
-  "description": "DeepSeek V4 专用计费面板: token 消耗、费用($)、缓存命中率、余额",
+  "description": "Real-time DeepSeek V4 token usage, cost($), cache hit rate, and balance monitor",
   "version": "1.0.0",
   "author": "whishi47",
-  "tags": ["deepseek", "billing", "tokens", "cost", "balance"],
+  "tags": ["deepseek", "billing", "tokens", "cost", "cache", "balance"],
   "homepage": "https://github.com/whishi47/codex-deepseek-billing",
   "script_url": "https://raw.githubusercontent.com/whishi47/codex-deepseek-billing/main/codex-deepseek-billing.js",
-  "sha256": "<计算脚本的 SHA-256>"
+  "sha256": "<SHA-256 of the script>"
 }
 ```
 
-4. 提交 PR
+4. Submit the PR
+
+<br/>
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
+
+<br/>
 
 ---
 
-## 📄 License
-
-MIT
+<p align="center">
+  <sub>Built by <a href="https://github.com/whishi47">whishi47</a></sub>
+  <br/>
+  <sub>Codex DeepSeek Billing — MIT</sub>
+</p>
