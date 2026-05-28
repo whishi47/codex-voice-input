@@ -1,24 +1,23 @@
 {
-  "name": "codex-deepseek-billing",
+  "name": "codex-voice-input",
   "version": "1.0.0",
-  "description": "Codex++ 插件 - DeepSeek V4 计费面板。实时显示 token 消耗、费用、缓存命中率和账户余额",
-  "main": "codex-deepseek-billing.js",
+  "description": "Codex++ 语音输入插件 - 悬浮麦克风按钮，点击录音，自动转文字填入输入框。基于本地 faster-whisper 离线识别。",
+  "main": "codex-voice-input.js",
   "scripts": {
-    "install": "powershell -ExecutionPolicy Bypass -File tools/install.ps1",
-    "uninstall": "powershell -ExecutionPolicy Bypass -File tools/uninstall.ps1",
-    "helper": "node tools/deepseek-billing-helper.js",
-    "validate": "node tools/deepseek-billing-helper.js --validate --once"
+    "helper": "python tools/voice-helper.py",
+    "helper-cmd": "tools/start-voice-helper.bat",
+    "helper-ps": "powershell -ExecutionPolicy Bypass -File tools/start-voice-helper.ps1"
   },
   "keywords": [
-    "deepseek",
-    "v4",
+    "voice",
+    "speech",
+    "whisper",
     "codex",
-    "billing",
-    "codex-plus-plus"
+    "microphone",
+    "codex-plus-plus",
+    "offline"
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "ws": "^8.21.0"
-  }
+  "dependencies": {}
 }

@@ -1,11 +1,11 @@
 {
-  "id": "codex-deepseek-billing",
-  "name": "Codex DeepSeek Billing",
-  "description": "DeepSeek V4 专用计费面板 - 实时显示 token 消耗、费用($/¥)、缓存命中率、缓存节省、账户余额与低余额警告。",
+  "id": "codex-voice-input",
+  "name": "Codex Voice Input",
+  "description": "Codex 语音输入插件 - 悬浮麦克风按钮，点击录音，自动转文字填入输入框。基于本地 faster-whisper 离线识别，无需联网。",
   "version": "1.0.0",
   "author": "",
-  "tags": ["deepseek", "billing", "tokens", "cost", "balance", "cache", "codex"],
+  "tags": ["voice", "speech", "whisper", "input", "microphone", "codex", "offline"],
   "homepage": "",
   "script_url": "",
-  "sha256": "83c678f66f57ccc2ca128bf75654db8c411e669316b1e97195213e7ba708e97d"
+  "sha256": ""
 }

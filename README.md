@@ -1,218 +1,168 @@
-<p align="center">
-  <img src="images/logo.svg" width="160" alt="Codex DeepSeek Billing"/>
-</p>
+# Codex Voice Input 🎤
 
-<p align="center">
-  <strong>English</strong>
-  &nbsp;·&nbsp;
-  <a href="./README.zh-CN.md">简体中文</a>
-  &nbsp;·&nbsp;
-  <a href="https://github.com/whishi47/codex-deepseek-billing">GitHub</a>
-  &nbsp;·&nbsp;
-  <a href="./AGENTS.md">Agent Guide</a>
-</p>
+> **Codex++ plugin** — A floating microphone button for Codex Desktop. Click to record, click again to stop, and the transcribed text is automatically inserted into the Codex input box.
 
-<p align="center">
-  <a href="https://github.com/whishi47/codex-deepseek-billing"><img src="https://img.shields.io/badge/version-1.0.0-blue.svg?style=flat-square&labelColor=161b22&color=2ea043&logo=git&logoColor=white" alt="version"/></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square&labelColor=161b22&color=8b949e" alt="license"/></a>
-  <a href="https://github.com/whishi47/codex-deepseek-billing/stargazers"><img src="https://img.shields.io/badge/stars-0-yellow.svg?style=flat-square&labelColor=161b22&color=dbab09&logo=github&logoColor=white" alt="stars"/></a>
-  <a href="https://github.com/whishi47/codex-deepseek-billing"><img src="https://img.shields.io/badge/Codex++-plugin-58a6ff.svg?style=flat-square&labelColor=161b22&logo=react&logoColor=white" alt="Codex++"/></a>
-  <a href="https://github.com/whishi47/codex-deepseek-billing/graphs/contributors"><img src="https://img.shields.io/badge/contributors-1-bc8cff.svg?style=flat-square&labelColor=161b22&logo=github&logoColor=white" alt="contributors"/></a>
-</p>
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
+[![Codex++](https://img.shields.io/badge/Codex%2B%2B-plugin-orange)](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket)
 
-<br/>
+## ✨ Features
 
-<h3 align="center">Real-time DeepSeek V4 cost tracking for your Codex++ coding sessions.</h3>
-<p align="center">Every token counted. Every dollar tracked. Cache hits, costs, balance — all visible without leaving your workflow.</p>
+- 🎤 **One-Click Recording** — Floating button right inside the Codex composer area
+- 🔤 **Auto Transcription** — Recording stops → local Whisper transcribes → text appears in the input
+- 🔒 **100% Offline** — Powered by faster-whisper running locally; your voice never leaves your machine
+- 🌐 **Chinese & English** — Excellent support for both languages, configurable preference
+- ⌨️ **Keyboard Shortcut** — `Ctrl+Shift+V` to toggle recording
+- 🎨 **Glassmorphism UI** — Dark translucent button that blends seamlessly with Codex
+- 📡 **Service Detection** — Button greys out when the backend is offline, auto-reconnects
 
-<br/>
+## 📦 Installation
 
-> [!TIP]
-> **Know what you spend before you get the bill.** DeepSeek V4 pricing is non-trivial — input vs. output, cache-hit vs. cache-miss, the 50× difference between them. This plugin surfaces it all in real-time, inline with your Codex++ conversations.
+### 1. Install Codex++ User Script
 
-> [!IMPORTANT]
-> **Designed for Codex++ user script system.** Drop the script in, enable it, done. Works alongside other Codex++ plugins without conflict. Open source, auditable, no telemetry.
+Copy `codex-voice-input.js` to your Codex++ user scripts directory:
 
-<br/>
+```cmd
+copy /Y codex-voice-input.js "%APPDATA%\Codex++\user_scripts\codex-voice-input.js"
+```
 
-## Features
+Or via PowerShell:
 
-- **Token-level breakdown** — input tokens, output tokens, cache-hit tokens, cache-miss tokens, cache-write tokens — all counted separately
-- **Real-time cost** — auto-calculated using DeepSeek V4 Flash & Pro pricing. Updates after every message
-- **Cache economics** — hit rate percentage, savings from cache hits. At 99% hit rate, input cost drops from $0.14/1M to ~$0.0028/1M
-- **Balance monitoring** — live balance via DeepSeek `/user/balance` API. Color-coded warnings: ¥5 (yellow), ¥2 (red blinking)
-- **Dual display modes** — inline mode (sits inside the conversation panel) or float mode (draggable overlay). Switch via right-click
-- **Dual currency** — USD and CNY side by side. Exchange rate: 7.2
-- **Multi-layer token detection** — React state scanning, DOM text extraction, fetch/XHR/WebSocket interception, SSE streaming response parsing
-- **Balance helper** — standalone Node.js process (`deepseek-billing-helper`) that polls balance and pushes it to the Codex++ page via CDP
+```powershell
+Copy-Item -LiteralPath .\codex-voice-input.js -Destination (Join-Path $env:APPDATA 'Codex++\user_scripts\codex-voice-input.js') -Force
+```
 
-<br/>
+Restart Codex to activate.
 
-## Install
+### 2. Start the Voice Helper
 
 ```bash
-# Clone the repo
-git clone https://github.com/whishi47/codex-deepseek-billing.git
-cd codex-deepseek-billing
+# Install Python dependencies (first time only)
+pip install -r requirements.txt
 
-# One-shot install
-powershell -ExecutionPolicy Bypass -File tools/install.ps1
+# Start the transcription service
+python tools/voice-helper.py --port 17420 --model small
 ```
 
-Requires [Codex desktop app](https://codex.gallery/) with [Codex++](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket) installed, and a [DeepSeek API key](https://platform.deepseek.com/api_keys). Node.js ≥ 14 for the balance helper.
+> **Note:** On first run, faster-whisper will automatically download the `small` model (~1.3 GB). Make sure you have a stable internet connection.
 
-### Quick reference
+#### One-click launchers
 
-| Step | What |
-|------|------|
-| `tools/install.ps1` | One-shot: copies files, prompts for API key, starts helper |
-| `config/api-key.txt` | Edit this to set your DeepSeek API key |
-| `node tools/deepseek-billing-helper.js` | Standalone — polls `/user/balance` every 30s |
-| `--once` | Single balance check, no daemon |
-| `--validate` | Verify your API key is valid |
-| `--no-cdp` | Skip CDP, print to stdout |
-
-### Manual install
-
-1. Copy `codex-deepseek-billing.js` to `%APPDATA%\Codex++\user_scripts\`
-2. Open Codex++ → Extensions → **Enable user scripts**
-3. Verify the script appears in the list and is toggled **on**
-4. (Optional) Start the balance helper: `node tools/deepseek-billing-helper.js`
-
-<br/>
-
-## DeepSeek V4 pricing
-
-| Model | Input (cache miss) | Input (cache hit) | Output |
-|-------|:------------------:|:-----------------:|:------:|
-| **V4-Flash** | $0.14 / 1M | $0.0028 / 1M | $0.28 / 1M |
-| **V4-Pro** (75% off) | $0.435 / 1M | $0.003625 / 1M | $0.87 / 1M |
-
-> 💡 **Cache hit rate is the single biggest cost lever.** At 99% hit, input is practically free ($0.0028/1M). The plugin tracks hit rate in real-time so you can optimize your session structure.
-
-<br/>
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│              Codex++ Page (Electron)          │
-│  ┌───────────────────────────────────────┐  │
-│  │  codex-deepseek-billing.js           │  │
-│  │                                       │  │
-│  │  • Token detection (React/DOM)        │  │
-│  │  • API monitoring (fetch/XHR/WS)      │  │
-│  │  • Cost calculation (V4 pricing)      │  │
-│  │  • UI panel (inline / float)          │  │
-│  └──────────────┬────────────────────────┘  │
-│                 │ CustomEvent                │
-│  ┌──────────────▼────────────────────────┐  │
-│  │  deepseek-billing-helper.js           │  │
-│  │  (standalone Node.js process)          │  │
-│  │                                       │  │
-│  │  • Reads API key from config          │  │
-│  │  • Calls /user/balance every 30s      │  │
-│  │  • Pushes sanitized balance to page   │  │
-│  └──────────────────────────────────────┘  │
-└─────────────────────────────────────────────┘
+```cmd
+tools\start-voice-helper.bat
 ```
 
-### How detection works
-
-The plugin doesn't just read the DOM — it taps into the data flow at every layer:
-
-1. **React state scan** — reads the internal React fiber tree for token usage hooks
-2. **DOM text scan** — backs up React reads with direct DOM text extraction
-3. **fetch/XHR intercept** — wraps `fetch()` and `XMLHttpRequest` to capture API response payloads
-4. **WebSocket intercept** — captures streaming token counts from WebSocket frames
-5. **SSE stream parser** — extracts `data:` lines from streaming responses and reassembles usage JSON
-
-<br/>
-
-## How it compares
-
-|                          | Codex DeepSeek Billing | Manual tracking | CCM (generic) |
-|--------------------------|:----------------------:|:---------------:|:-------------:|
-| DeepSeek V4 pricing      | ✅ built-in           | ❌              | ❌             |
-| Cache hit rate           | ✅ real-time          | ❌              | ❌             |
-| Cache savings ($)        | ✅ auto-computed      | ❌              | ❌             |
-| Balance monitoring       | ✅ live API           | ❌              | ❌             |
-| Dual currency (USD/CNY)  | ✅ side-by-side       | ❌              | ❌             |
-| SSE streaming parse      | ✅                    | ❌              | ❌             |
-| Inline / float dual mode | ✅                    | ❌              | ❌             |
-| Open source (MIT)        | ✅                    | —               | ✅             |
-| No telemetry             | ✅                    | —               | ✅             |
-| Codex++ user script      | ✅ dedicated          | —               | ✅             |
-
-<br/>
-
-## What this is and isn't
-
-> [!IMPORTANT]
-> Codex DeepSeek Billing is a focused tool. Some things it deliberately does — and doesn't do.
-
-- **DeepSeek V4 only.** This is intentional — V4's pricing model (cache-hit vs cache-miss, Flash vs Pro) is what makes real-time tracking meaningful. For other providers, the math is different.
-- **Read-only, no API calls of its own.** The plugin observes tokens from the Codex++ page itself. It never sends your data anywhere. The only external call is the balance helper, which hits DeepSeek's `/user/balance` endpoint with your own API key.
-- **Not a proxy.** It doesn't sit between you and DeepSeek. It sits beside your Codex++ session, watching what goes through.
-- **Not a profiler.** It shows cost, not performance. For latency or throughput analysis, use the browser's DevTools.
-
-<br/>
-
-## Project structure
-
-```
-codex-deepseek-billing/
-├── codex-deepseek-billing.js    # Main script (~150KB, 4149 lines)
-├── AGENTS.md                     # Agent-based installation guide
-├── market-entry.json             # Script market submission manifest
-├── package.json                  # ws dependency
-├── config/
-│   ├── api-key.txt               # API key template
-│   └── config.json               # Balance thresholds
-└── tools/
-    ├── deepseek-billing-helper.js # Balance polling daemon
-    ├── install.ps1               # Windows installer
-    └── uninstall.ps1             # Windows uninstaller
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\start-voice-helper.ps1
 ```
 
-<br/>
+## 🚀 Usage
 
-## To the Script Market
+1. Make sure the voice helper is running (console shows "服务已启动，等待请求...")
+2. Find the 🎤 button in the Codex composer toolbar
+3. **Click** to start recording (button pulses red)
+4. Speak into your microphone
+5. **Click again** to stop
+6. Wait for transcription (button spins blue) — text is auto-inserted
 
-Submit a PR to [CodexPlusPlusScriptMarket](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket):
+### Keyboard Shortcut
 
-1. Fork the market repo
-2. Copy `codex-deepseek-billing.js` to `scripts/` in your fork
-3. Add an entry to `index.json`:
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+V` | Toggle recording (start/stop) |
+
+### Right-Click Menu
+
+Right-click the mic button to switch display modes:
+- **Inline** — Fixed inside the Codex input toolbar
+- **Floating** — Draggable, place anywhere on screen
+
+When the voice helper service is not running, the button will appear **greyed out** with a "Service Offline" tooltip.
+
+## ⚙️ Configuration
+
+Edit `config/config.json`:
 
 ```json
 {
-  "id": "codex-deepseek-billing",
-  "name": "Codex DeepSeek Billing",
-  "description": "Real-time DeepSeek V4 token usage, cost($), cache hit rate, and balance monitor",
-  "version": "1.0.0",
-  "author": "whishi47",
-  "tags": ["deepseek", "billing", "tokens", "cost", "cache", "balance"],
-  "homepage": "https://github.com/whishi47/codex-deepseek-billing",
-  "script_url": "https://raw.githubusercontent.com/whishi47/codex-deepseek-billing/main/codex-deepseek-billing.js",
-  "sha256": "<SHA-256 of the script>"
+  "language": "zh",       // auto / zh / en
+  "model": "small",       // tiny / base / small / medium / large-v3
+  "helperPort": 17420     // Local transcription service port
 }
 ```
 
-4. Submit the PR
+## 🧠 Model Selection
 
-<br/>
+| Model | Size | Chinese Accuracy | Speed |
+|-------|------|-----------------|-------|
+| tiny | 390 MB | Fair | Realtime |
+| base | 580 MB | Good | Realtime |
+| **small** (recommended) | **1.3 GB** | **Excellent** | **1.5× realtime** |
+| medium | 2.6 GB | Better | 2–3× |
+| large-v3 | 5.7 GB | Best | 3–5× |
 
-## License
+## 🏗️ Architecture
 
-MIT — see [LICENSE](./LICENSE).
+```
+Codex Electron Renderer Process
+┌──────────────────────────────────────────┐
+│  codex-voice-input.js (Codex++ plugin)   │
+│                                          │
+│  🎤 Button → AudioContext (16kHz PCM)    │
+│       │                     │            │
+│       │ Click to toggle     │ WAV Blob   │
+│       ▼                     ▼            │
+│  [Record] → [Transcribe] → Insert Text   │
+│                    │                     │
+└────────────────────┼─────────────────────┘
+                     │ HTTP POST (127.0.0.1:17420)
+┌────────────────────▼─────────────────────┐
+│  tools/voice-helper.py (Python)          │
+│                                          │
+│  HTTP Server → faster-whisper (small)    │
+│  Receive WAV → Transcribe → Return Text  │
+│                                          │
+│  🔒 No network, no API, fully local      │
+└──────────────────────────────────────────┘
+```
 
-<br/>
+## 🛠️ Development
 
----
+```bash
+# Clone the repo
+git clone https://github.com/YOUR_USERNAME/codex-voice-input.git
+cd codex-voice-input
 
-<p align="center">
-  <sub>Built by <a href="https://github.com/whishi47">whishi47</a></sub>
-  <br/>
-  <sub>Codex DeepSeek Billing — MIT</sub>
-</p>
+# Install Python deps
+pip install -r requirements.txt
+
+# Start the helper
+python tools/voice-helper.py
+
+# Deploy the plugin
+copy /Y codex-voice-input.js "%APPDATA%\Codex++\user_scripts\"
+```
+
+## ❓ FAQ
+
+**Q: Why does the button appear grey?**  
+A: The voice helper service is not running. Start it with `python tools/voice-helper.py`.
+
+**Q: Microphone permission denied?**  
+A: Allow Codex to access your microphone in Windows privacy settings (`Settings → Privacy → Microphone`).
+
+**Q: Transcription quality is poor?**  
+A: Try a larger model — set `"model": "medium"` in `config/config.json`. Note that larger models use more RAM and are slower.
+
+**Q: Can I use a different port?**  
+A: Yes. Start the helper with `--port 8080` and update `helperPort` in `config.json`.
+
+## 🔗 Related Projects
+
+- [CodexPlusPlusScriptMarket](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket) — Codex++ plugin marketplace
+- [faster-whisper](https://github.com/SYSTRAN/faster-whisper) — CTranslate2-based Whisper implementation
+- [Codex Desktop](https://github.com/openai/codex) — OpenAI Codex CLI & Desktop
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE) for details.
