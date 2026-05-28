@@ -1,168 +1,196 @@
-# Codex Voice Input 🎤
+<p align="center">
+  <img src="./images/banner.svg" height="160" alt="Codex Voice Input" />
+</p>
 
-> **Codex++ plugin** — A floating microphone button for Codex Desktop. Click to record, click again to stop, and the transcribed text is automatically inserted into the Codex input box.
+<h1 align="center">Codex Voice Input</h1>
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
-[![Codex++](https://img.shields.io/badge/Codex%2B%2B-plugin-orange)](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket)
+<p align="center">
+  Codex++ 语音输入插件 — 悬浮麦克风按钮，点击录音，自动转文字填入输入框。
+</p>
 
-## ✨ Features
+<p align="center">
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
+  </a>
+  <a href="https://www.python.org/">
+    <img src="https://img.shields.io/badge/python-3.9%2B-blue" alt="Python" />
+  </a>
+  <a href="https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket">
+    <img src="https://img.shields.io/badge/Codex%2B%2B-plugin-orange" alt="Codex++" />
+  </a>
+</p>
 
-- 🎤 **One-Click Recording** — Floating button right inside the Codex composer area
-- 🔤 **Auto Transcription** — Recording stops → local Whisper transcribes → text appears in the input
-- 🔒 **100% Offline** — Powered by faster-whisper running locally; your voice never leaves your machine
-- 🌐 **Chinese & English** — Excellent support for both languages, configurable preference
-- ⌨️ **Keyboard Shortcut** — `Ctrl+Shift+V` to toggle recording
-- 🎨 **Glassmorphism UI** — Dark translucent button that blends seamlessly with Codex
-- 📡 **Service Detection** — Button greys out when the backend is offline, auto-reconnects
+<p align="center">
+  <a href="./README.en.md">English</a>
+  ·
+  <a href="#-功能">功能</a>
+  ·
+  <a href="#-快速开始">快速开始</a>
+  ·
+  <a href="#-配置">配置</a>
+  ·
+  <a href="#-常见问题">常见问题</a>
+</p>
 
-## 📦 Installation
+---
 
-### 1. Install Codex++ User Script
+## ✨ 功能
 
-Copy `codex-voice-input.js` to your Codex++ user scripts directory:
+- 🎤 **一键录音** — Codex 对话框内悬浮麦克风按钮，点按即录
+- 🔤 **自动转录** — 录音结束自动发送到本地识别引擎，文字即刻填入输入框
+- 🔒 **完全离线** — 基于 [faster-whisper](https://github.com/SYSTRAN/faster-whisper) 本地运行，语音数据不出本机
+- 🌐 **中英双语** — 中文 + 英文识别，可配置语言偏好
+- ⌨️ **键盘快捷键** — `Ctrl+Shift+V` 切换录音
+- 🎨 **毛玻璃 UI** — 深色半透明按钮，完美融入 Codex 原生界面
+- 📡 **离线感知** — 识别服务断开时按钮自动灰显，恢复后自动重连
+
+## 🚀 快速开始
+
+### 1. 安装用户脚本
+
+将 `codex-voice-input.js` 复制到 Codex++ 用户脚本目录：
 
 ```cmd
-copy /Y codex-voice-input.js "%APPDATA%\Codex++\user_scripts\codex-voice-input.js"
+copy /Y codex-voice-input.js "%APPDATA%\Codex++\user_scripts\"
 ```
 
-Or via PowerShell:
+重启 Codex 后生效。
 
-```powershell
-Copy-Item -LiteralPath .\codex-voice-input.js -Destination (Join-Path $env:APPDATA 'Codex++\user_scripts\codex-voice-input.js') -Force
-```
-
-Restart Codex to activate.
-
-### 2. Start the Voice Helper
+### 2. 启动识别服务
 
 ```bash
-# Install Python dependencies (first time only)
 pip install -r requirements.txt
-
-# Start the transcription service
 python tools/voice-helper.py --port 17420 --model small
 ```
 
-> **Note:** On first run, faster-whisper will automatically download the `small` model (~1.3 GB). Make sure you have a stable internet connection.
+> 首次运行会自动下载 faster-whisper `small` 模型（约 1.3 GB），请保持网络通畅。
 
-#### One-click launchers
+一键启动：
 
 ```cmd
 tools\start-voice-helper.bat
 ```
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\start-voice-helper.ps1
+### 3. 开始使用
+
+在 Codex 对话框底部工具栏找到 🎤 按钮，点击开始录音，再次点击停止 — 文字自动填入输入框。
+
+> 如果按钮显示**灰色**并提示「服务未连接」，说明语音识别服务未启动。运行 `python tools/voice-helper.py` 后按钮会自动恢复。
+
+### Demo
+
+```
+┌─ Codex 对话框 ────────────────────────────────────┐
+│                                                    │
+│  用户问题:  帮我写一个登录接口...                    │
+│                                                    │
+│  ┌─────────────────────────────────────────────┐  │
+│  │  [输入你的需求...]                  🎤 ← 点我  │  │
+│  └─────────────────────────────────────────────┘  │
+│                                                    │
+│  ① 点击 🎤 → 按钮变红脉冲 → 说话                    │
+│  ② 再点 🎤 → 按钮变蓝旋转 → 识别中...               │
+│  ③ 文字自动填入输入框 ✨                            │
+└────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Usage
+## ⌨️ 使用方式
 
-1. Make sure the voice helper is running (console shows "服务已启动，等待请求...")
-2. Find the 🎤 button in the Codex composer toolbar
-3. **Click** to start recording (button pulses red)
-4. Speak into your microphone
-5. **Click again** to stop
-6. Wait for transcription (button spins blue) — text is auto-inserted
+| 操作 | 说明 |
+|------|------|
+| 点击按钮 | 开始 / 停止录音 |
+| `Ctrl+Shift+V` | 键盘快捷键切换录音 |
+| 右键按钮 | 切换**内联** / **悬浮**显示模式 |
+| 拖拽按钮 | 悬浮模式下可拖动到任意位置 |
 
-### Keyboard Shortcut
+## ⚙️ 配置
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+Shift+V` | Toggle recording (start/stop) |
+编辑 `config/config.json`：
 
-### Right-Click Menu
-
-Right-click the mic button to switch display modes:
-- **Inline** — Fixed inside the Codex input toolbar
-- **Floating** — Draggable, place anywhere on screen
-
-When the voice helper service is not running, the button will appear **greyed out** with a "Service Offline" tooltip.
-
-## ⚙️ Configuration
-
-Edit `config/config.json`:
-
-```json
+```jsonc
 {
-  "language": "zh",       // auto / zh / en
-  "model": "small",       // tiny / base / small / medium / large-v3
-  "helperPort": 17420     // Local transcription service port
+  "language": "zh",       // 识别语言: auto / zh / en
+  "model": "small",       // 模型大小: tiny / base / small / medium / large-v3
+  "helperPort": 17420     // 本地识别服务端口
 }
 ```
 
-## 🧠 Model Selection
+## 🧠 模型选择
 
-| Model | Size | Chinese Accuracy | Speed |
-|-------|------|-----------------|-------|
-| tiny | 390 MB | Fair | Realtime |
-| base | 580 MB | Good | Realtime |
-| **small** (recommended) | **1.3 GB** | **Excellent** | **1.5× realtime** |
-| medium | 2.6 GB | Better | 2–3× |
-| large-v3 | 5.7 GB | Best | 3–5× |
+| 模型 | 体积 | 中文准确率 | 速度（10s 音频） |
+|------|------|:---:|:---:|
+| `tiny` | 390 MB | 一般 | 实时 |
+| `base` | 580 MB | 较好 | 实时 |
+| **`small`** | **1.3 GB** | **优秀** | **~7s** |
+| `medium` | 2.6 GB | 更优 | ~20s |
+| `large-v3` | 5.7 GB | 最佳 | ~35s |
 
-## 🏗️ Architecture
+> 推荐默认使用 `small`，兼顾速度与准确率。
+
+## 🏗 架构
 
 ```
-Codex Electron Renderer Process
+Codex Electron 渲染进程
 ┌──────────────────────────────────────────┐
-│  codex-voice-input.js (Codex++ plugin)   │
+│  codex-voice-input.js (Codex++ 插件)     │
 │                                          │
-│  🎤 Button → AudioContext (16kHz PCM)    │
-│       │                     │            │
-│       │ Click to toggle     │ WAV Blob   │
-│       ▼                     ▼            │
-│  [Record] → [Transcribe] → Insert Text   │
-│                    │                     │
-└────────────────────┼─────────────────────┘
-                     │ HTTP POST (127.0.0.1:17420)
-┌────────────────────▼─────────────────────┐
-│  tools/voice-helper.py (Python)          │
+│  🎤 → AudioContext 16kHz PCM → WAV      │
+│         │                                │
+│         │  fetch POST                    │
+│         ▼                                │
+│  文字 ← JSON  ← localhost:17420          │
+│         │                                │
+│  注入 Codex 输入框                        │
+└──────────────────┬───────────────────────┘
+                   │ HTTP (本机回环)
+┌──────────────────▼───────────────────────┐
+│  tools/voice-helper.py (Python 进程)     │
 │                                          │
 │  HTTP Server → faster-whisper (small)    │
-│  Receive WAV → Transcribe → Return Text  │
+│  接收 WAV → 转录 → 返回文字 JSON          │
 │                                          │
-│  🔒 No network, no API, fully local      │
+│  🔒 不联网 · 不出本机 · 无 API Key        │
 └──────────────────────────────────────────┘
 ```
 
-## 🛠️ Development
+## ❓ 常见问题
 
-```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/codex-voice-input.git
-cd codex-voice-input
+<details>
+<summary><b>按钮显示灰色怎么办？</b></summary>
 
-# Install Python deps
-pip install -r requirements.txt
+语音识别服务未启动。运行 `python tools/voice-helper.py` 启动后，按钮会在 30 秒内自动恢复。
+</details>
 
-# Start the helper
-python tools/voice-helper.py
+<details>
+<summary><b>麦克风权限被拒绝？</b></summary>
 
-# Deploy the plugin
-copy /Y codex-voice-input.js "%APPDATA%\Codex++\user_scripts\"
-```
+在 Windows 设置 → 隐私和安全性 → 麦克风中，允许 Codex 访问麦克风。
+</details>
 
-## ❓ FAQ
+<details>
+<summary><b>识别准确率不够高？</b></summary>
 
-**Q: Why does the button appear grey?**  
-A: The voice helper service is not running. Start it with `python tools/voice-helper.py`.
+在 `config/config.json` 中将 `model` 改为 `medium` 或 `large-v3`。注意：更大的模型需要更多内存和磁盘空间。
+</details>
 
-**Q: Microphone permission denied?**  
-A: Allow Codex to access your microphone in Windows privacy settings (`Settings → Privacy → Microphone`).
+<details>
+<summary><b>可以换端口吗？</b></summary>
 
-**Q: Transcription quality is poor?**  
-A: Try a larger model — set `"model": "medium"` in `config/config.json`. Note that larger models use more RAM and are slower.
+可以。启动 helper 时指定 `--port 8080`，并同步修改 `config.json` 中的 `helperPort`。
+</details>
 
-**Q: Can I use a different port?**  
-A: Yes. Start the helper with `--port 8080` and update `helperPort` in `config.json`.
+<details>
+<summary><b>识别服务占用多少内存？</b></summary>
 
-## 🔗 Related Projects
+`small` 模型约占用 2 GB 内存，`medium` 约 3 GB，`large-v3` 约 6 GB。
+</details>
 
-- [CodexPlusPlusScriptMarket](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket) — Codex++ plugin marketplace
-- [faster-whisper](https://github.com/SYSTRAN/faster-whisper) — CTranslate2-based Whisper implementation
+## 🔗 相关项目
+
+- [CodexPlusPlusScriptMarket](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket) — Codex++ 插件市场
+- [faster-whisper](https://github.com/SYSTRAN/faster-whisper) — CTranslate2 加速版 Whisper
 - [Codex Desktop](https://github.com/openai/codex) — OpenAI Codex CLI & Desktop
 
-## 📄 License
+## 📄 许可证
 
-MIT — see [LICENSE](LICENSE) for details.
+[MIT](./LICENSE) License
