@@ -1,9 +1,11 @@
 {
   "name": "codex-voice-input",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Codex++ 语音输入插件 - 悬浮麦克风按钮，点击录音，自动转文字填入输入框。基于本地 faster-whisper 离线识别。",
   "main": "codex-voice-input.js",
   "scripts": {
+    "test": "node tests/smoke.test.js",
+    "install-start": "powershell -ExecutionPolicy Bypass -File tools/install-and-start.ps1",
     "helper": "python tools/voice-helper.py",
     "helper-cmd": "tools/start-voice-helper.bat",
     "helper-ps": "powershell -ExecutionPolicy Bypass -File tools/start-voice-helper.ps1"

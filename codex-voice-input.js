@@ -7,11 +7,26 @@
   const API_KEY = "__codexVoiceInput";
   const STYLE_ID = "codex-voice-input-style";
   const ROOT_ID = "codex-voice-input";
-  const SCRIPT_VERSION = 101;
+  const SCRIPT_VERSION = 102;
 
   const HELPER_URL = "http://127.0.0.1:17420";
   const TRANSCRIBE_URL = HELPER_URL + "/transcribe";
   const HEALTH_URL = HELPER_URL + "/health";
+  const REPO_URL = "https://github.com/whishi47/codex-voice-input";
+  const PROJECT_URL = REPO_URL + "#readme";
+  const INSTALL_SCRIPT_URL = REPO_URL + "/raw/master/tools/install-and-start.ps1";
+  const INSTALL_POWERSHELL = [
+    "$localInstaller=Join-Path (Get-Location) 'tools\\install-and-start.ps1';",
+    "if (Test-Path $localInstaller) {",
+    "& powershell -NoProfile -ExecutionPolicy Bypass -File $localInstaller;",
+    "} else {",
+    "$u='" + INSTALL_SCRIPT_URL + "';",
+    "$p=Join-Path $env:TEMP 'codex-voice-input-install.ps1';",
+    "Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $p;",
+    "& powershell -NoProfile -ExecutionPolicy Bypass -File $p;",
+    "}",
+  ].join(" ");
+  const INSTALL_COMMAND = "powershell -NoProfile -ExecutionPolicy Bypass -Command " + quotePowerShellCommand(INSTALL_POWERSHELL);
 
   const CONFIG_STORAGE_KEY = "__codexVoiceInputConfig";
   const UI_STATE_STORAGE_KEY = "__codexVoiceInputUiState";
@@ -32,7 +47,7 @@
   };
 
   const DEFAULT_UI_STATE = {
-    mode: "inline",
+    mode: "floating",
     floatingX: null,
     floatingY: null,
   };
@@ -80,6 +95,9 @@
     helperOnline: null,       // null=checking, true=在线, false=离线
     helperModel: "",
     helperCheckTimer: null,
+    hoverOpenTimer: null,
+    hoverCloseTimer: null,
+    suppressNextClick: false,
   };
 
   // ===== 配置 =====
@@ -120,6 +138,10 @@
     return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
   }
 
+  function quotePowerShellCommand(command) {
+    return "'" + String(command).replace(/'/g, "''") + "'";
+  }
+
   // ===== CSS =====
   function installStyle() {
     const existing = document.getElementById(STYLE_ID);
@@ -134,7 +156,7 @@
       // Root
       "#" + ROOT_ID + "{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;z-index:2147483646;}",
       "#" + ROOT_ID + "[hidden]{display:none!important;}",
-      "#" + ROOT_ID + "[data-placement=floating]{position:fixed;z-index:2147483647;}",
+      "#" + ROOT_ID + "[data-placement=floating]{position:fixed;z-index:2147483647;touch-action:none;user-select:none;cursor:grab;animation:cvi-float-enter .28s cubic-bezier(.2,.8,.2,1);}",
 
       // Mic Button
       "#" + ROOT_ID + " .cvi-mic-btn{",
@@ -143,15 +165,21 @@
       "  border-radius:50%;background:rgba(12,16,28,.78);",
       "  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);",
       "  color:rgba(255,255,255,.82);cursor:pointer;outline:none;",
-      "  transition:all .22s ease;box-shadow:0 2px 8px rgba(0,0,0,.15);",
+      "  transition:transform .18s ease,border-color .22s ease,color .22s ease,background .22s ease,box-shadow .22s ease;box-shadow:0 2px 8px rgba(0,0,0,.15);",
       "  -webkit-app-region:no-drag;overflow:visible;",
+      "}",
+      "#" + ROOT_ID + " .cvi-mic-btn::before{",
+      "  content:\"\";position:absolute;inset:-5px;border-radius:inherit;",
+      "  border:1px solid rgba(78,161,255,0);opacity:0;transform:scale(.82);pointer-events:none;",
       "}",
       "#" + ROOT_ID + " .cvi-mic-btn:hover{",
       "  border-color:rgba(78,161,255,.4);color:#fff;",
       "  box-shadow:0 4px 16px rgba(78,161,255,.15);",
       "  background:rgba(18,24,42,.88);",
+      "  transform:translateY(-1px) scale(1.04);",
       "}",
       "#" + ROOT_ID + " .cvi-mic-btn:active{transform:scale(.94);}",
+      "#" + ROOT_ID + "[data-placement=floating] .cvi-mic-btn:hover::before{animation:cvi-hover-pop .42s ease-out;}",
 
       // Button SVG icon
       "#" + ROOT_ID + " .cvi-mic-icon{",
@@ -166,6 +194,9 @@
       "  background:rgba(30,10,10,.88);",
       "  animation:cvi-pulse-record 1.2s ease-in-out infinite;",
       "}",
+      "#" + ROOT_ID + "[data-status=recording] .cvi-mic-btn::before{",
+      "  border-color:rgba(239,68,68,.42);opacity:1;animation:cvi-record-ring 1.35s ease-out infinite;",
+      "}",
       "#" + ROOT_ID + "[data-status=recording] .cvi-mic-btn:hover{",
       "  border-color:rgba(239,68,68,.8);color:#ef4444;",
       "  box-shadow:0 4px 20px rgba(239,68,68,.25);",
@@ -174,6 +205,9 @@
       // Processing state
       "#" + ROOT_ID + "[data-status=processing] .cvi-mic-btn{",
       "  border-color:rgba(78,161,255,.5);color:#4ea1ff;",
+      "}",
+      "#" + ROOT_ID + "[data-status=processing] .cvi-processing-sheen{",
+      "  display:block;animation:cvi-processing-sheen 1.05s ease-in-out infinite;",
       "}",
       "#" + ROOT_ID + "[data-status=processing] .cvi-mic-icon{",
       "  animation:cvi-spin .8s linear infinite;",
@@ -184,6 +218,9 @@
       "  border-color:rgba(74,222,128,.5);color:#4ade80;",
       "  background:rgba(8,28,14,.88);",
       "  box-shadow:0 2px 12px rgba(74,222,128,.2);",
+      "}",
+      "#" + ROOT_ID + "[data-status=done] .cvi-done-spark{",
+      "  display:block;animation:cvi-done-spark .55s ease-out both;",
       "}",
 
       // Helper disconnected state
@@ -210,6 +247,14 @@
       "  width:48px;height:48px;pointer-events:none;",
       "}",
       "#" + ROOT_ID + "[data-status=recording] .cvi-waveform{display:block;}",
+      "#" + ROOT_ID + " .cvi-processing-sheen{",
+      "  display:none;position:absolute;inset:5px;border-radius:50%;pointer-events:none;",
+      "  background:linear-gradient(115deg,transparent 10%,rgba(78,161,255,.34) 45%,transparent 75%);",
+      "}",
+      "#" + ROOT_ID + " .cvi-done-spark{",
+      "  display:none;position:absolute;inset:-7px;border-radius:50%;pointer-events:none;",
+      "  border:1px solid rgba(74,222,128,.55);",
+      "}",
 
       // Status tooltip label
       "#" + ROOT_ID + " .cvi-status-label{",
@@ -225,9 +270,32 @@
       "#" + ROOT_ID + "[data-status=error] .cvi-status-label{display:block;color:#f87171;}",
 
       // Animations
+      "@keyframes cvi-float-enter{",
+      "  from{opacity:0;transform:translateY(8px) scale(.88)}",
+      "  to{opacity:1;transform:translateY(0) scale(1)}",
+      "}",
+      "@keyframes cvi-hover-pop{",
+      "  0%{opacity:0;transform:scale(.82);border-color:rgba(78,161,255,0)}",
+      "  45%{opacity:1;transform:scale(1.16);border-color:rgba(78,161,255,.48)}",
+      "  100%{opacity:0;transform:scale(1.28);border-color:rgba(78,161,255,0)}",
+      "}",
       "@keyframes cvi-pulse-record{",
       "  0%,100%{box-shadow:0 2px 8px rgba(239,68,68,.2);}",
       "  50%{box-shadow:0 2px 20px rgba(239,68,68,.4);}",
+      "}",
+      "@keyframes cvi-record-ring{",
+      "  0%{opacity:.72;transform:scale(.86)}",
+      "  100%{opacity:0;transform:scale(1.5)}",
+      "}",
+      "@keyframes cvi-processing-sheen{",
+      "  0%{transform:rotate(0deg) translateX(-3px);opacity:.35}",
+      "  50%{opacity:.85}",
+      "  100%{transform:rotate(360deg) translateX(-3px);opacity:.35}",
+      "}",
+      "@keyframes cvi-done-spark{",
+      "  0%{opacity:0;transform:scale(.78)}",
+      "  45%{opacity:1;transform:scale(1.12)}",
+      "  100%{opacity:0;transform:scale(1.34)}",
       "}",
       "@keyframes cvi-spin{",
       "  from{transform:rotate(0deg)}",
@@ -256,6 +324,19 @@
       ".cvi-toast.cvi-toast-success{",
       "  border-color:rgba(74,222,128,.4);color:#4ade80;",
       "}",
+      ".cvi-context-menu{",
+      "  animation:cvi-menu-in .16s cubic-bezier(.2,.8,.2,1);transform-origin:top left;",
+      "}",
+      ".cvi-context-menu button{",
+      "  transition:background .14s ease,transform .14s ease,color .14s ease;",
+      "}",
+      ".cvi-context-menu button:not(:disabled):hover{",
+      "  background:rgba(255,255,255,.08)!important;transform:translateX(2px);",
+      "}",
+      "@keyframes cvi-menu-in{",
+      "  from{opacity:0;transform:translateY(4px) scale(.96)}",
+      "  to{opacity:1;transform:translateY(0) scale(1)}",
+      "}",
       "@keyframes cvi-toast-in{",
       "  from{opacity:0;transform:translateX(-50%) translateY(12px)}",
       "  to{opacity:1;transform:translateX(-50%) translateY(0)}",
@@ -263,6 +344,11 @@
       "@keyframes cvi-toast-out{",
       "  from{opacity:1}",
       "  to{opacity:0}",
+      "}",
+      "@media (prefers-reduced-motion:reduce){",
+      "  #" + ROOT_ID + ",#" + ROOT_ID + " *, .cvi-context-menu,.cvi-context-menu *, .cvi-toast{",
+      "    animation:none!important;transition:none!important;",
+      "  }",
       "}",
     ].join("");
 
@@ -284,6 +370,26 @@
     }, 2800);
   }
 
+  function showSetupHelp() {
+    navigator.clipboard.writeText(INSTALL_COMMAND).then(function() {
+      showToast("已复制一键安装启动命令，请粘贴到 PowerShell 运行", "success");
+    }).catch(function() {
+      showToast("请在 PowerShell 运行一键安装启动命令", "error");
+    });
+    console.log("[VoiceInput] One-command setup:", INSTALL_COMMAND);
+  }
+
+  function openProjectGuide() {
+    try {
+      window.open(PROJECT_URL, "_blank", "noopener,noreferrer");
+      showToast("已打开 GitHub 使用说明", "success");
+    } catch (e) {
+      navigator.clipboard.writeText(PROJECT_URL).then(function() {
+        showToast("GitHub 地址已复制到剪贴板", "");
+      }).catch(function() {});
+    }
+  }
+
   // ===== DOM 创建 =====
   function ensureRoot() {
     var root = document.getElementById(ROOT_ID);
@@ -294,6 +400,7 @@
       state.statusLabel = root.querySelector(".cvi-status-label");
       state.waveformEl = root.querySelector(".cvi-waveform");
       installFloatingDrag(root);
+      installHoverMenu(root);
       mountRoot(root);
       updateButtonUI();
       return root;
@@ -314,6 +421,8 @@
       '<button class="cvi-mic-btn" type="button">' +
         '<span class="cvi-mic-icon">' + micSvg + '</span>' +
         '<span class="cvi-waveform"></span>' +
+        '<span class="cvi-processing-sheen"></span>' +
+        '<span class="cvi-done-spark"></span>' +
         '<span class="cvi-status-label">录音中...</span>' +
       '</button>';
 
@@ -325,6 +434,12 @@
 
     // 事件绑定
     state.button.addEventListener("click", handleMicClick);
+    state.button.addEventListener("click", function(e) {
+      if (!state.suppressNextClick) return;
+      state.suppressNextClick = false;
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
 
     // 右键菜单：切换模式
     state.button.addEventListener("contextmenu", function(e) {
@@ -333,6 +448,7 @@
     });
 
     installFloatingDrag(root);
+    installHoverMenu(root);
     mountRoot(root);
     updateButtonUI();
     updateHelperUI();
@@ -343,34 +459,53 @@
     return root;
   }
 
-  // ===== 右键菜单 =====
-  function showContextMenu(x, y) {
-    // 移除旧菜单
-    var old = document.querySelector(".cvi-context-menu");
-    if (old) old.remove();
+  // ===== 菜单 =====
+  function buildVoiceMenuItems() {
+    var isFloating = state.uiState.mode === "floating";
+    var recordLabel = state.status === STATUS_RECORDING ? "停止录音" : "开始录音";
+    if (state.status === STATUS_PROCESSING) recordLabel = "识别中...";
+
+    return [
+      {
+        label: recordLabel,
+        action: handleMicClick,
+        checked: state.status === STATUS_RECORDING,
+        disabled: state.status === STATUS_PROCESSING,
+      },
+      { label: "内联显示", action: function() { switchMode("inline"); }, checked: !isFloating },
+      { label: "悬浮显示", action: function() { switchMode("floating"); }, checked: isFloating },
+      { label: "安装/启动语音服务", action: showSetupHelp, checked: false },
+      { label: "GitHub / 使用说明", action: openProjectGuide, checked: false },
+    ];
+  }
+
+  function closeVoiceMenu(source) {
+    var selector = source ? '.cvi-context-menu[data-menu-source="' + source + '"]' : ".cvi-context-menu";
+    document.querySelectorAll(selector).forEach(function(menu) { menu.remove(); });
+  }
+
+  function showVoiceMenu(x, y, source) {
+    closeVoiceMenu();
 
     var menu = document.createElement("div");
     menu.className = "cvi-context-menu";
+    menu.setAttribute("data-menu-source", source || "context");
     menu.style.cssText =
-      "position:fixed;z-index:2147483647;min-width:140px;padding:4px;" +
+      "position:fixed;z-index:2147483647;min-width:168px;padding:4px;" +
       "border:1px solid rgba(255,255,255,.14);border-radius:8px;" +
       "background:rgba(12,16,28,.96);color:rgba(255,255,255,.92);" +
       "box-shadow:0 8px 32px rgba(0,0,0,.36);" +
       "font:12px/1.35 system-ui,-apple-system,sans-serif;" +
       "backdrop-filter:blur(12px);-webkit-app-region:no-drag;";
 
-    var isFloating = state.uiState.mode === "floating";
-    var items = [
-      { label: "内联显示", action: function() { switchMode("inline"); }, checked: !isFloating },
-      { label: "悬浮显示", action: function() { switchMode("floating"); }, checked: isFloating },
-    ];
-
+    var items = buildVoiceMenuItems();
     var html = "";
     for (var i = 0; i < items.length; i++) {
       var item = items[i];
-      html += '<button style="display:flex;align-items:center;gap:6px;width:100%;' +
-        'padding:5px 8px;border:0;border-radius:5px;background:transparent;' +
-        'color:inherit;font:inherit;cursor:pointer;text-align:left;">' +
+      html += '<button ' + (item.disabled ? "disabled " : "") +
+        'style="display:flex;align-items:center;gap:6px;width:100%;' +
+        'padding:6px 8px;border:0;border-radius:5px;background:transparent;' +
+        'color:inherit;font:inherit;cursor:' + (item.disabled ? "default" : "pointer") + ';text-align:left;">' +
         '<span style="flex:0 0 14px;width:14px;color:#86efac;font-weight:700;text-align:center;">' +
         (item.checked ? '\u2713' : '') + '</span>' +
         '<span>' + item.label + '</span></button>';
@@ -379,26 +514,33 @@
     menu.innerHTML = html;
     document.body.appendChild(menu);
 
-    // 定位
-    var mw = 140, mh = items.length * 28 + 8;
-    menu.style.left = Math.min(x, window.innerWidth - mw - 8) + "px";
-    menu.style.top = Math.min(y, window.innerHeight - mh - 8) + "px";
+    var mw = 168, mh = items.length * 32 + 8;
+    menu.style.left = Math.max(8, Math.min(x, window.innerWidth - mw - 8)) + "px";
+    menu.style.top = Math.max(8, Math.min(y, window.innerHeight - mh - 8)) + "px";
 
-    // 绑定点击
     var buttons = menu.querySelectorAll("button");
     for (var j = 0; j < buttons.length; j++) {
       (function(idx) {
         buttons[idx].addEventListener("click", function() {
+          if (items[idx].disabled) return;
           items[idx].action();
-          menu.remove();
+          closeVoiceMenu();
         });
       })(j);
     }
 
-    // 点击外部关闭
+    if (source === "hover") {
+      menu.addEventListener("mouseenter", function() {
+        clearTimeout(state.hoverCloseTimer);
+      });
+      menu.addEventListener("mouseleave", function() {
+        scheduleHoverMenuClose();
+      });
+    }
+
     var closeListener = function(e) {
       if (!menu.contains(e.target)) {
-        menu.remove();
+        closeVoiceMenu();
         document.removeEventListener("click", closeListener, true);
       }
     };
@@ -407,7 +549,50 @@
     }, 10);
   }
 
+  function showContextMenu(x, y) {
+    showVoiceMenu(x, y, "context");
+  }
+
+  function scheduleHoverMenuClose() {
+    clearTimeout(state.hoverCloseTimer);
+    state.hoverCloseTimer = setTimeout(function() {
+      closeVoiceMenu("hover");
+    }, 240);
+  }
+
+  function installHoverMenu(root) {
+    if (state._hoverCleanup) return;
+
+    function openFromHover() {
+      if (root.dataset.placement !== "floating") return;
+      clearTimeout(state.hoverCloseTimer);
+      clearTimeout(state.hoverOpenTimer);
+      state.hoverOpenTimer = setTimeout(function() {
+        if (!state.root || root.dataset.placement !== "floating") return;
+        var rect = state.root.getBoundingClientRect();
+        showVoiceMenu(rect.right + 8, rect.top, "hover");
+      }, 220);
+    }
+
+    function closeFromHover() {
+      clearTimeout(state.hoverOpenTimer);
+      scheduleHoverMenuClose();
+    }
+
+    root.addEventListener("mouseenter", openFromHover);
+    root.addEventListener("mouseleave", closeFromHover);
+
+    state._hoverCleanup = function() {
+      root.removeEventListener("mouseenter", openFromHover);
+      root.removeEventListener("mouseleave", closeFromHover);
+      clearTimeout(state.hoverOpenTimer);
+      clearTimeout(state.hoverCloseTimer);
+      closeVoiceMenu("hover");
+    };
+  }
+
   function switchMode(mode) {
+    closeVoiceMenu("hover");
     state.uiState.mode = mode;
     writeUiState(state.uiState);
     mountRoot(state.root);
@@ -458,6 +643,7 @@
           // 找最后一个可见按钮所在容器
           var lastBtn = null;
           buttons.forEach(function(b) {
+            if (b.closest && b.closest("#" + ROOT_ID)) return;
             if (isVisibleElement(b)) lastBtn = b;
           });
           if (lastBtn) {
@@ -475,9 +661,8 @@
     state.uiState = readUiState();
 
     if (state.uiState.mode === "floating") {
-      if (!root.parentNode) {
-        (document.body || document.documentElement).appendChild(root);
-      }
+      // Floating mode always moves root under body to avoid clipping by the composer.
+      (document.body || document.documentElement).appendChild(root);
       root.dataset.placement = "floating";
 
       // 恢复位置
@@ -505,9 +690,7 @@
         }
       } else {
         // 兜底：悬浮
-        if (!root.parentNode) {
-          (document.body || document.documentElement).appendChild(root);
-        }
+        (document.body || document.documentElement).appendChild(root);
         root.dataset.placement = "floating";
         root.style.left = (window.innerWidth - 60) + "px";
         root.style.top = (window.innerHeight - 100) + "px";
@@ -523,17 +706,20 @@
     var moved = false;
 
     function onPointerDown(e) {
-      if (state.uiState.mode !== "floating") return;
+      if (root.dataset.placement !== "floating") return;
       if (state.status === STATUS_RECORDING) return; // 录音中不拖拽
       if (e.button !== 0) return;
       dragging = true;
       moved = false;
+      clearTimeout(state.hoverOpenTimer);
+      closeVoiceMenu("hover");
       startX = e.clientX;
       startY = e.clientY;
       origLeft = parseInt(root.style.left) || 0;
       origTop = parseInt(root.style.top) || 0;
       root.setPointerCapture(e.pointerId);
       e.preventDefault();
+      e.stopPropagation();
     }
 
     function onPointerMove(e) {
@@ -544,29 +730,35 @@
       moved = true;
       root.style.left = Math.max(0, Math.min(window.innerWidth - 48, origLeft + dx)) + "px";
       root.style.top = Math.max(0, Math.min(window.innerHeight - 48, origTop + dy)) + "px";
+      e.preventDefault();
+      e.stopPropagation();
     }
 
     function onPointerUp(e) {
       if (!dragging) return;
       dragging = false;
-      root.releasePointerCapture(e.pointerId);
+      try { root.releasePointerCapture(e.pointerId); } catch (ex) {}
       if (moved) {
+        state.suppressNextClick = true;
         state.uiState.floatingX = parseInt(root.style.left) || 0;
         state.uiState.floatingY = parseInt(root.style.top) || 0;
         writeUiState(state.uiState);
       }
+      e.preventDefault();
+      e.stopPropagation();
     }
 
     root.addEventListener("pointerdown", onPointerDown);
-    root.addEventListener("pointermove", onPointerMove);
-    root.addEventListener("pointerup", onPointerUp);
-    root.addEventListener("pointercancel", onPointerUp);
+    // Use document-level listeners for move/up — more reliable for drag
+    document.addEventListener("pointermove", onPointerMove, true);
+    document.addEventListener("pointerup", onPointerUp, true);
+    document.addEventListener("pointercancel", onPointerUp, true);
 
     state._floatingCleanup = function() {
       root.removeEventListener("pointerdown", onPointerDown);
-      root.removeEventListener("pointermove", onPointerMove);
-      root.removeEventListener("pointerup", onPointerUp);
-      root.removeEventListener("pointercancel", onPointerUp);
+      document.removeEventListener("pointermove", onPointerMove, true);
+      document.removeEventListener("pointerup", onPointerUp, true);
+      document.removeEventListener("pointercancel", onPointerUp, true);
     };
   }
 
@@ -762,7 +954,7 @@
 
     // 服务未连接时不允许录音
     if (state.helperOnline === false) {
-      showToast("语音识别服务未启动，请先运行 tools/voice-helper.py", "error");
+      showSetupHelp();
       return;
     }
     if (state.helperOnline === null) {
@@ -864,7 +1056,7 @@
       setStatus(STATUS_ERROR);
 
       if (e.message && e.message.includes("未响应")) {
-        showToast("语音识别服务未启动，请先运行 tools/voice-helper.py", "error");
+        showSetupHelp();
       } else {
         showToast("识别失败: " + (e.message || "未知错误"), "error");
       }
@@ -1012,6 +1204,10 @@
       state._floatingCleanup();
       state._floatingCleanup = null;
     }
+    if (state._hoverCleanup) {
+      state._hoverCleanup();
+      state._hoverCleanup = null;
+    }
     if (state._keyHandler) {
       document.removeEventListener("keydown", state._keyHandler, true);
       state._keyHandler = null;
@@ -1019,6 +1215,9 @@
 
     clearTimeout(state._resetTimer);
     clearTimeout(state.recordTimer);
+    clearTimeout(state.hoverOpenTimer);
+    clearTimeout(state.hoverCloseTimer);
+    closeVoiceMenu();
 
     delete window[API_KEY];
     delete window[INSTALL_KEY];

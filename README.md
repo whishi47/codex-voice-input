@@ -42,9 +42,20 @@
 - 🌐 **中英双语** — 中文 + 英文识别，可配置语言偏好
 - ⌨️ **键盘快捷键** — `Ctrl+Shift+V` 切换录音
 - 🎨 **毛玻璃 UI** — 深色半透明按钮，完美融入 Codex 原生界面
+- 🪄 **悬浮菜单** — 鼠标移到悬浮按钮可打开录音、显示模式、安装启动和 GitHub 使用说明入口
 - 📡 **离线感知** — 识别服务断开时按钮自动灰显，恢复后自动重连
 
 ## 🚀 快速开始
+
+### 一键安装并启动
+
+在 PowerShell 中运行下面命令。它会优先使用当前目录的本地安装器；如果不在仓库目录中，则会从 GitHub 下载安装器，自动部署用户脚本并启动本地识别服务。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command '$localInstaller=Join-Path (Get-Location) ''tools\install-and-start.ps1''; if (Test-Path $localInstaller) { & powershell -NoProfile -ExecutionPolicy Bypass -File $localInstaller; } else { $u=''https://github.com/whishi47/codex-voice-input/raw/master/tools/install-and-start.ps1''; $p=Join-Path $env:TEMP ''codex-voice-input-install.ps1''; Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $p; & powershell -NoProfile -ExecutionPolicy Bypass -File $p; }'
+```
+
+首次识别会下载 faster-whisper 模型文件。下载完成前服务可能已经在线，但第一次转录会比较慢。
 
 ### 1. 安装用户脚本
 
@@ -100,8 +111,18 @@ tools\start-voice-helper.bat
 |------|------|
 | 点击按钮 | 开始 / 停止录音 |
 | `Ctrl+Shift+V` | 键盘快捷键切换录音 |
-| 右键按钮 | 切换**内联** / **悬浮**显示模式 |
+| 鼠标移到悬浮按钮 | 打开悬浮菜单 |
+| 右键按钮 | 打开同一套功能菜单 |
 | 拖拽按钮 | 悬浮模式下可拖动到任意位置 |
+
+### 悬浮菜单
+
+悬浮菜单包含：
+
+- 开始 / 停止录音
+- 切换内联显示 / 悬浮显示
+- 复制一键安装启动命令
+- 打开 GitHub 项目和使用说明
 
 ## ⚙️ 配置
 
@@ -190,6 +211,15 @@ Codex Electron 渲染进程
 - [CodexPlusPlusScriptMarket](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket) — Codex++ 插件市场
 - [faster-whisper](https://github.com/SYSTRAN/faster-whisper) — CTranslate2 加速版 Whisper
 - [Codex Desktop](https://github.com/openai/codex) — OpenAI Codex CLI & Desktop
+
+## 🤝 贡献与审核
+
+欢迎提交 issue 和 pull request。为了保证用户脚本安全，所有外部代码提交都需要维护者审核后再合并。
+
+- 不要提交 API Key、Token、真实用户目录、邮箱、私网地址或带凭据的 URL
+- 修改 `codex-voice-input.js` 后，请运行 `npm test`
+- 涉及安装、启动、依赖或本地进程的改动，需要说明安全影响
+- 维护者会检查代码、测试结果和是否包含隐私数据后再合并
 
 ## 📄 许可证
 

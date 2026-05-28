@@ -43,9 +43,20 @@
 - 🌐 **Chinese & English** — Excellent bilingual recognition with configurable language preference
 - ⌨️ **Keyboard Shortcut** — `Ctrl+Shift+V` to toggle recording
 - 🎨 **Glassmorphism UI** — Dark translucent button that blends seamlessly with Codex
+- 🪄 **Floating Menu** — Hover the floating button for recording, display mode, setup, and GitHub usage guide actions
 - 📡 **Offline-Aware** — Button auto-greys out when backend is down, reconnects when it's back
 
 ## 🚀 Quick Start
+
+### One-Command Install
+
+Run this in PowerShell. It prefers the local installer when you are already inside the repository; otherwise it downloads the installer from GitHub, deploys the user script, and starts the local voice helper.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command '$localInstaller=Join-Path (Get-Location) ''tools\install-and-start.ps1''; if (Test-Path $localInstaller) { & powershell -NoProfile -ExecutionPolicy Bypass -File $localInstaller; } else { $u=''https://github.com/whishi47/codex-voice-input/raw/master/tools/install-and-start.ps1''; $p=Join-Path $env:TEMP ''codex-voice-input-install.ps1''; Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $p; & powershell -NoProfile -ExecutionPolicy Bypass -File $p; }'
+```
+
+The first real transcription may download the faster-whisper model. The helper can be online before that download finishes.
 
 ### 1. Install the User Script
 
@@ -101,8 +112,18 @@ Find the 🎤 button in the Codex composer toolbar. Click to record, click again
 |--------|-------------|
 | Click button | Start / stop recording |
 | `Ctrl+Shift+V` | Keyboard toggle |
-| Right-click | Switch **inline** / **floating** mode |
+| Hover floating button | Open the floating menu |
+| Right-click | Open the same action menu |
 | Drag button | In floating mode, drag anywhere on screen |
+
+### Floating Menu
+
+The floating menu includes:
+
+- Start / stop recording
+- Switch inline / floating display
+- Copy the one-command setup launcher
+- Open the GitHub project and usage guide
 
 ## ⚙️ Configuration
 
@@ -191,6 +212,15 @@ Yes. Start the helper with `--port 8080` and update `helperPort` in `config.json
 - [CodexPlusPlusScriptMarket](https://github.com/BigPizzaV3/CodexPlusPlusScriptMarket) — Codex++ plugin marketplace
 - [faster-whisper](https://github.com/SYSTRAN/faster-whisper) — CTranslate2-based Whisper
 - [Codex Desktop](https://github.com/openai/codex) — OpenAI Codex CLI & Desktop
+
+## 🤝 Contribution Review
+
+Issues and pull requests are welcome. For user safety, external code contributions require maintainer review before they are merged.
+
+- Do not commit API keys, tokens, real user directories, email addresses, private network addresses, or credentialed URLs
+- Run `npm test` after editing `codex-voice-input.js`
+- Explain security impact for changes that touch installation, startup, dependencies, or local processes
+- Maintainers review code, test results, and privacy-sensitive data before merging
 
 ## 📄 License
 
