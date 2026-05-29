@@ -147,7 +147,7 @@ function Ensure-HelperEnvironment {
 
     if (-not (Test-Path $venvPython)) {
         Write-Step "Creating Python virtual environment"
-        & $PythonCommand -m venv $venvPath
+        & $PythonCommand -m venv $venvPath | Out-Host
     }
 
     $pipPath = Join-Path $venvPath "Scripts\pip.exe"
@@ -155,9 +155,9 @@ function Ensure-HelperEnvironment {
 
     Write-Step "Installing voice helper dependencies"
     if (Test-Path $requirements) {
-        & $pipPath install -r $requirements
+        & $pipPath install -r $requirements | Out-Host
     } else {
-        & $pipPath install flask faster-whisper numpy
+        & $pipPath install flask faster-whisper numpy | Out-Host
     }
 
     return $venvPython

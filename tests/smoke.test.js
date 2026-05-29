@@ -30,6 +30,18 @@ assert(
   "install-and-start.ps1 should start the voice helper as a process"
 );
 assert(
+  installScript.includes("Start-Process -FilePath $PythonCommand"),
+  "install-and-start.ps1 should start the voice helper using only the resolved Python executable"
+);
+assert(
+  /(?:& \$pipPath install -r \$requirements|& \$pipPath install flask faster-whisper numpy)\s*\|\s*Out-Host/.test(installScript),
+  "install-and-start.ps1 should stream pip output to the host so it cannot pollute the returned Python path"
+);
+assert(
+  /(?:& \$PythonCommand -m venv \$venvPath)\s*\|\s*Out-Host/.test(installScript),
+  "install-and-start.ps1 should stream venv output to the host so it cannot pollute the returned Python path"
+);
+assert(
   !/Remove-Item\s+-LiteralPath\s+\$ProjectDir\s+-Recurse/i.test(installScript),
   "install-and-start.ps1 should not recursively delete the selected install directory"
 );
@@ -43,8 +55,8 @@ const contributing = read("CONTRIBUTING.md");
 const prTemplate = read(".github/pull_request_template.md");
 const codeowners = read(".github/CODEOWNERS");
 
-assert(packageJson.version === "1.1.0", "package.json should be bumped to 1.1.0");
-assert(marketEntry.version === "1.1.0", "market-entry.json should be bumped to 1.1.0");
+assert(packageJson.version === "1.1.1", "package.json should be bumped to 1.1.1");
+assert(marketEntry.version === "1.1.1", "market-entry.json should be bumped to 1.1.1");
 
 assert(
   userScript.includes("INSTALL_COMMAND"),
