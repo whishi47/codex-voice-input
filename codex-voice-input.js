@@ -1,13 +1,11 @@
 (() => {
-  // Codex++ Voice Input — 悬浮麦克风语音输入插件
-  // 点击按钮开始录音，再次点击停止，自动转文字填入 Codex 输入框
-  // 依赖: tools/voice-helper.py (本地 faster-whisper 识别服务)
+  // Codex++ Voice Input �?悬浮麦克风语音输入插�?  // 点击按钮开始录音，再次点击停止，自动转文字填入 Codex 输入�?  // 依赖: tools/voice-helper.py (本地 faster-whisper 识别服务)
 
   const INSTALL_KEY = "__codexVoiceInputInstalled";
   const API_KEY = "__codexVoiceInput";
   const STYLE_ID = "codex-voice-input-style";
   const ROOT_ID = "codex-voice-input";
-  const SCRIPT_VERSION = 103;
+  const SCRIPT_VERSION = 104;
 
   const HELPER_URL = "http://127.0.0.1:17420";
   const TRANSCRIBE_URL = HELPER_URL + "/transcribe";
@@ -31,11 +29,11 @@
     "Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $p;",
     "} catch {",
     "if ((Test-Path $cachedInstaller) -and (Test-Path $cachedUserScript) -and (Test-Path $cachedHelper)) {",
-    "Write-Host '[Codex Voice Input] 无法从 GitHub 下载安装器，改用本地缓存安装器。' -ForegroundColor Yellow;",
+    "Write-Host '[Codex Voice Input] 无法�?GitHub 下载安装器，改用本地缓存安装器�? -ForegroundColor Yellow;",
     "& powershell -NoProfile -ExecutionPolicy Bypass -File $cachedInstaller;",
     "return;",
     "}",
-    "throw '无法从 GitHub 下载安装器，也没有找到完整的本地缓存项目。请检查网络，或先在项目目录里运行 tools\\install-and-start.ps1。详细信息: ' + $_.Exception.Message;",
+    "throw '无法�?GitHub 下载安装器，也没有找到完整的本地缓存项目。请检查网络，或先在项目目录里运行 tools\\install-and-start.ps1。详细信�? ' + $_.Exception.Message;",
     "}",
     "& powershell -NoProfile -ExecutionPolicy Bypass -File $p;",
     "}",
@@ -89,7 +87,7 @@
 
   window[INSTALL_KEY] = true;
 
-  // ===== 状态 =====
+  // ===== 状�?=====
   const state = {
     status: STATUS_IDLE,
     audioCtx: null,
@@ -371,7 +369,7 @@
 
   // ===== Toast 提示 =====
   function showToast(message, type) {
-    // 移除旧 toast
+    // 移除�?toast
     document.querySelectorAll(".cvi-toast").forEach(function(t) { t.remove(); });
 
     var toast = document.createElement("div");
@@ -388,7 +386,7 @@
     navigator.clipboard.writeText(INSTALL_COMMAND).then(function() {
       showToast("已复制一键安装启动命令，请粘贴到 PowerShell 运行", "success");
     }).catch(function() {
-      showToast("请在 PowerShell 运行一键安装启动命令", "error");
+      showToast("请在 PowerShell 运行一键安装启动命�?, "error");
     });
     console.log("[VoiceInput] One-command setup:", INSTALL_COMMAND);
   }
@@ -399,7 +397,7 @@
       showToast("已打开 GitHub 使用说明", "success");
     } catch (e) {
       navigator.clipboard.writeText(PROJECT_URL).then(function() {
-        showToast("GitHub 地址已复制到剪贴板", "");
+        showToast("GitHub 地址已复制到剪贴�?, "");
       }).catch(function() {});
     }
   }
@@ -423,7 +421,7 @@
     root = document.createElement("div");
     root.id = ROOT_ID;
     root.setAttribute("data-status", STATUS_IDLE);
-    root.setAttribute("title", "语音输入 — 点击开始录音");
+    root.setAttribute("title", "语音输入 �?点击开始录�?);
 
     // Mic SVG icon
     var micSvg = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">' +
@@ -437,7 +435,7 @@
         '<span class="cvi-waveform"></span>' +
         '<span class="cvi-processing-sheen"></span>' +
         '<span class="cvi-done-spark"></span>' +
-        '<span class="cvi-status-label">录音中...</span>' +
+        '<span class="cvi-status-label">录音�?..</span>' +
       '</button>';
 
     state.root = root;
@@ -455,8 +453,7 @@
       e.stopPropagation();
     }, true);
 
-    // 右键菜单：切换模式
-    state.button.addEventListener("contextmenu", function(e) {
+    // 右键菜单：切换模�?    state.button.addEventListener("contextmenu", function(e) {
       e.preventDefault();
       showContextMenu(e.clientX, e.clientY);
     });
@@ -467,7 +464,7 @@
     updateButtonUI();
     updateHelperUI();
 
-    // 检查 helper 服务是否在线
+    // 检�?helper 服务是否在线
     checkHelperHealth();
 
     return root;
@@ -476,8 +473,8 @@
   // ===== 菜单 =====
   function buildVoiceMenuItems() {
     var isFloating = state.uiState.mode === "floating";
-    var recordLabel = state.status === STATUS_RECORDING ? "停止录音" : "开始录音";
-    if (state.status === STATUS_PROCESSING) recordLabel = "识别中...";
+    var recordLabel = state.status === STATUS_RECORDING ? "停止录音" : "开始录�?;
+    if (state.status === STATUS_PROCESSING) recordLabel = "识别�?..";
 
     return [
       {
@@ -621,7 +618,7 @@
       });
     };
 
-    // 策略 1: 找 composer-footer 中的 justify-end 区域
+    // 策略 1: �?composer-footer 中的 justify-end 区域
     var footers = Array.from(document.querySelectorAll(".composer-footer"))
       .filter(function(f) {
         return isVisibleElement(f) && f.getBoundingClientRect().top > window.innerHeight * 0.45;
@@ -654,8 +651,7 @@
         if (!parent) break;
         var buttons = parent.querySelectorAll("button, [role='button']");
         if (buttons.length > 0 && buttons.length < 20) {
-          // 找最后一个可见按钮所在容器
-          var lastBtn = null;
+          // 找最后一个可见按钮所在容�?          var lastBtn = null;
           buttons.forEach(function(b) {
             if (b.closest && b.closest("#" + ROOT_ID)) return;
             if (isVisibleElement(b)) lastBtn = b;
@@ -684,8 +680,7 @@
         root.style.left = state.uiState.floatingX + "px";
         root.style.top = state.uiState.floatingY + "px";
       } else {
-        // 默认右下角
-        root.style.left = (window.innerWidth - 60) + "px";
+        // 默认右下�?        root.style.left = (window.innerWidth - 60) + "px";
         root.style.top = (window.innerHeight - 100) + "px";
       }
     } else {
@@ -703,8 +698,7 @@
           mount.parent.appendChild(root);
         }
       } else {
-        // 兜底：悬浮
-        (document.body || document.documentElement).appendChild(root);
+        // 兜底：悬�?        (document.body || document.documentElement).appendChild(root);
         root.dataset.placement = "floating";
         root.style.left = (window.innerWidth - 60) + "px";
         root.style.top = (window.innerHeight - 100) + "px";
@@ -763,7 +757,7 @@
     }
 
     root.addEventListener("pointerdown", onPointerDown);
-    // Use document-level listeners for move/up — more reliable for drag
+    // Use document-level listeners for move/up �?more reliable for drag
     document.addEventListener("pointermove", onPointerMove, true);
     document.addEventListener("pointerup", onPointerUp, true);
     document.addEventListener("pointercancel", onPointerUp, true);
@@ -776,13 +770,13 @@
     };
   }
 
-  // ===== 按钮状态 UI =====
+  // ===== 按钮状�?UI =====
   function setStatus(newStatus) {
     state.status = newStatus;
     state.root.setAttribute("data-status", newStatus);
     updateButtonUI();
 
-    // done 状态 2 秒后自动恢复 idle
+    // done 状�?2 秒后自动恢复 idle
     if (newStatus === STATUS_DONE || newStatus === STATUS_ERROR) {
       clearTimeout(state._resetTimer);
       state._resetTimer = setTimeout(function() {
@@ -798,17 +792,17 @@
 
     var labels = {};
     labels[STATUS_IDLE] = "";
-    labels[STATUS_RECORDING] = "录音中...";
-    labels[STATUS_PROCESSING] = "识别中...";
+    labels[STATUS_RECORDING] = "录音�?..";
+    labels[STATUS_PROCESSING] = "识别�?..";
     labels[STATUS_DONE] = "完成";
     labels[STATUS_ERROR] = "失败";
 
     var titles = {};
-    titles[STATUS_IDLE] = "语音输入 — 点击开始录音";
+    titles[STATUS_IDLE] = "语音输入 �?点击开始录�?;
     titles[STATUS_RECORDING] = "点击停止录音";
     titles[STATUS_PROCESSING] = "正在识别语音...";
-    titles[STATUS_DONE] = "识别完成，已填入输入框";
-    titles[STATUS_ERROR] = "识别失败，点击重试";
+    titles[STATUS_DONE] = "识别完成，已填入输入�?;
+    titles[STATUS_ERROR] = "识别失败，点击重�?;
 
     state.statusLabel.textContent = labels[state.status] || "";
     state.button.title = titles[state.status] || "语音输入";
@@ -837,8 +831,7 @@
       processor.onaudioprocess = function(e) {
         if (state.status !== STATUS_RECORDING) return;
         var inputData = e.inputBuffer.getChannelData(0);
-        // 复制一份（避免复用 buffer）
-        state.audioChunks.push(new Float32Array(inputData));
+        // 复制一份（避免复用 buffer�?        state.audioChunks.push(new Float32Array(inputData));
       };
 
       source.connect(processor);
@@ -850,10 +843,9 @@
       state.processor = processor;
       state.recordStartTime = Date.now();
 
-      // 最长录音时间保护
-      state.recordTimer = setTimeout(function() {
+      // 最长录音时间保�?      state.recordTimer = setTimeout(function() {
         if (state.status === STATUS_RECORDING) {
-          showToast("已达最长录音时间 (60秒)，自动停止", "");
+          showToast("已达最长录音时�?(60�?，自动停�?, "");
           stopAndTranscribe();
         }
       }, MAX_RECORD_SECONDS * 1000);
@@ -863,7 +855,7 @@
       if (e.name === "NotAllowedError") {
         showToast("麦克风权限被拒绝，请在浏览器设置中允许麦克风访问", "error");
       } else if (e.name === "NotFoundError") {
-        showToast("未检测到麦克风设备", "error");
+        showToast("未检测到麦克风设�?, "error");
       } else {
         showToast("录音启动失败: " + (e.message || "未知错误"), "error");
       }
@@ -898,7 +890,7 @@
   }
 
   function buildWavBlob() {
-    // 合并所有 PCM 数据
+    // 合并所�?PCM 数据
     var totalLength = 0;
     for (var i = 0; i < state.audioChunks.length; i++) {
       totalLength += state.audioChunks[i].length;
@@ -913,7 +905,7 @@
       offset += state.audioChunks[j].length;
     }
 
-    // Float32 → Int16 PCM
+    // Float32 �?Int16 PCM
     var int16Length = pcmData.length;
     var wavBuffer = new ArrayBuffer(44 + int16Length * 2);
     var view = new DataView(wavBuffer);
@@ -966,13 +958,12 @@
       e.stopPropagation();
     }
 
-    // 服务未连接时不允许录音
-    if (state.helperOnline === false) {
+    // 服务未连接时不允许录�?    if (state.helperOnline === false) {
       showSetupHelp();
       return;
     }
     if (state.helperOnline === null) {
-      showToast("正在检测识别服务，请稍候...", "");
+      showToast("正在检测识别服务，请稍�?..", "");
       return;
     }
 
@@ -980,24 +971,21 @@
       case STATUS_IDLE:
       case STATUS_DONE:
       case STATUS_ERROR:
-        // 开始录音
-        cleanupAudio();
+        // 开始录�?        cleanupAudio();
         setStatus(STATUS_RECORDING);
         try {
           await startRecording();
         } catch (err) {
-          // 错误已在 startRecording 中处理
-        }
+          // 错误已在 startRecording 中处�?        }
         break;
 
       case STATUS_RECORDING:
-        // 停止录音 → 转录
+        // 停止录音 �?转录
         stopAndTranscribe();
         break;
 
       case STATUS_PROCESSING:
-        // 处理中，不允许操作
-        showToast("正在识别中，请稍候...", "");
+        // 处理中，不允许操�?        showToast("正在识别中，请稍�?..", "");
         break;
     }
   }
@@ -1016,11 +1004,11 @@
 
     if (!wavBlob || wavBlob.size < 100) {
       setStatus(STATUS_ERROR);
-      showToast("录制的音频太短，请重试", "error");
+      showToast("录制的音频太短，请重�?, "error");
       return;
     }
 
-    console.log("[VoiceInput] 录音完成: " + (wavBlob.size / 1024).toFixed(1) + "KB, 开始转录...");
+    console.log("[VoiceInput] 录音完成: " + (wavBlob.size / 1024).toFixed(1) + "KB, 开始转�?..");
 
     try {
       var config = readConfig();
@@ -1036,7 +1024,7 @@
 
       if (!res.ok) {
         if (res.status === 0 || res.status >= 500) {
-          throw new Error("语音识别服务未响应");
+          throw new Error("语音识别服务未响�?);
         }
         throw new Error("服务返回错误: " + res.status);
       }
@@ -1049,12 +1037,11 @@
 
       if (!data.text || !data.text.trim()) {
         setStatus(STATUS_IDLE);
-        showToast("未检测到语音内容，请靠近麦克风再试", "error");
+        showToast("未检测到语音内容，请靠近麦克风再�?, "error");
         return;
       }
 
-      // 注入文字到 Codex 输入框
-      var text = data.text.trim();
+      // 注入文字�?Codex 输入�?      var text = data.text.trim();
       insertText(text);
       state.lastText = text;
 
@@ -1069,7 +1056,7 @@
       console.error("[VoiceInput] 转录失败:", e);
       setStatus(STATUS_ERROR);
 
-      if (e.message && e.message.includes("未响应")) {
+      if (e.message && e.message.includes("未响�?)) {
         showSetupHelp();
       } else {
         showToast("识别失败: " + (e.message || "未知错误"), "error");
@@ -1079,8 +1066,7 @@
 
   // ===== 文字注入 =====
   function insertText(text) {
-    // 找 Codex 输入框（textarea 或 contenteditable）
-    var input = document.querySelector("textarea:not([readonly])");
+    // �?Codex 输入框（textarea �?contenteditable�?    var input = document.querySelector("textarea:not([readonly])");
     if (!input) {
       input = document.querySelector("[contenteditable=true]");
     }
@@ -1088,8 +1074,7 @@
       input = document.querySelector("[role='textbox']");
     }
     if (!input) {
-      // 兜底：复制到剪贴板
-      navigator.clipboard.writeText(text).then(function() {
+      // 兜底：复制到剪贴�?      navigator.clipboard.writeText(text).then(function() {
         showToast("未找到输入框，文字已复制到剪贴板", "");
       }).catch(function() {});
       return;
@@ -1105,8 +1090,7 @@
         var prefix = before && !/[\s\n]$/.test(before) ? " " : "";
         input.value = before + prefix + text + after;
 
-        // 移动光标到插入文本末尾
-        var newPos = start + prefix.length + text.length;
+        // 移动光标到插入文本末�?        var newPos = start + prefix.length + text.length;
         input.setSelectionRange(newPos, newPos);
 
         input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1123,42 +1107,42 @@
         input.dispatchEvent(new Event("input", { bubbles: true }));
       }
     } catch (e) {
-      // 兜底：复制到剪贴板
-      navigator.clipboard.writeText(text).then(function() {
-        showToast("文字已复制到剪贴板，请手动粘贴", "");
+      // 兜底：复制到剪贴�?      navigator.clipboard.writeText(text).then(function() {
+        showToast("文字已复制到剪贴板，请手动粘�?, "");
       }).catch(function() {});
     }
   }
 
-  // ===== Helper 健康检查 =====
+  // ===== Helper 健康检�?=====
   async function checkHelperHealth() {
     try {
-      var res = await fetch(HEALTH_URL, { signal: AbortSignal.timeout(3000) });
+      var controller = new AbortController();
+      var timeoutId = setTimeout(function() { controller.abort(); }, 4000);
+      var res = await fetch(HEALTH_URL, { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (res.ok) {
         var data = await res.json();
         state.helperOnline = true;
         state.helperModel = (data.model && data.model.size) ? data.model.size : "";
-        console.log("[VoiceInput] Helper 已连接: model=" + state.helperModel + ", status=" + (data.model && data.model.status));
+        console.log("[VoiceInput] Helper 已连�? model=" + state.helperModel + ", status=" + (data.model && data.model.status));
         updateHelperUI();
         return true;
       }
     } catch (e) {
-      // 服务不可达
-    }
+      clearTimeout(timeoutId);
+      // 服务不可�?    }
     state.helperOnline = false;
     state.helperModel = "";
     updateHelperUI();
-    console.log("[VoiceInput] Helper 未连接，请启动 tools/voice-helper.py");
+    console.log("[VoiceInput] Helper 未连接，请启�?tools/voice-helper.py");
     return false;
   }
 
   // ===== Helper 定时探测 =====
   function startHelperHealthPoll() {
     stopHelperHealthPoll();
-    // 立即检查一次
-    checkHelperHealth();
-    // 每 30 秒检查一次
-    state.helperCheckTimer = setInterval(checkHelperHealth, 30000);
+    // 立即检查一�?    checkHelperHealth();
+    // �?30 秒检查一�?    state.helperCheckTimer = setInterval(checkHelperHealth, 30000);
   }
 
   function stopHelperHealthPoll() {
@@ -1168,8 +1152,7 @@
     }
   }
 
-  // 刷新按钮上的 helper 状态指示
-  function updateHelperUI() {
+  // 刷新按钮上的 helper 状态指�?  function updateHelperUI() {
     if (!state.root) return;
     if (state.helperOnline === true) {
       state.root.removeAttribute("data-helper");
@@ -1177,22 +1160,22 @@
         state.statusLabel.textContent = "";
         state.statusLabel.style.display = "none";
       }
-      state.button.title = "语音输入 — 点击开始录音 (" + state.helperModel + ")";
+      state.button.title = "语音输入 �?点击开始录�?(" + state.helperModel + ")";
     } else if (state.helperOnline === false) {
       state.root.setAttribute("data-helper", "offline");
       if (state.status === STATUS_IDLE) {
-        state.statusLabel.textContent = "服务未连接";
+        state.statusLabel.textContent = "服务未连�?;
         state.statusLabel.style.display = "block";
       }
-      state.button.title = "语音识别服务未启动 — 请先运行 tools/voice-helper.py";
+      state.button.title = "语音识别服务未启�?�?请先运行 tools/voice-helper.py";
     } else {
       // null = checking
       state.root.removeAttribute("data-helper");
-      state.button.title = "语音输入 — 正在检测服务...";
+      state.button.title = "语音输入 �?正在检测服�?..";
     }
   }
 
-  // ===== 键盘快捷键 (Ctrl+Shift+V 触发录音) =====
+  // ===== 键盘快捷�?(Ctrl+Shift+V 触发录音) =====
   function installKeyboardShortcut() {
     state._keyHandler = function(e) {
       // Ctrl+Shift+V: 切换录音
@@ -1204,7 +1187,7 @@
     document.addEventListener("keydown", state._keyHandler, true);
   }
 
-  // ===== 销毁 =====
+  // ===== 销�?=====
   function destroy() {
     cleanupAudio();
     stopHelperHealthPoll();
@@ -1258,8 +1241,7 @@
   try { ensureRoot(); } catch(e) { console.error("[VoiceInput] DOM创建失败:", e); }
   try { installKeyboardShortcut(); } catch(e) {}
 
-  // 启动定时 helper 探测（立即一次 + 每 30s）
-  try { startHelperHealthPoll(); } catch(e) {}
+  // 启动定时 helper 探测（立即一�?+ �?30s�?  try { startHelperHealthPoll(); } catch(e) {}
 
   console.log("[VoiceInput] codex-voice-input v" + SCRIPT_VERSION + " started");
 })();

@@ -199,16 +199,16 @@ function testLauncherRejectsIncompleteCacheWhenDownloadFails() {
   );
 }
 
-assert(packageJson.version === "1.1.2", "package.json should be bumped to 1.1.2");
-assert(marketEntry.version === "1.1.2", "market-entry.json should be bumped to 1.1.2");
+assert(packageJson.version === "1.1.3", "package.json should be bumped to 1.1.2");
+assert(marketEntry.version === "1.1.3", "market-entry.json should be bumped to 1.1.2");
 
 assert(
   userScript.includes("INSTALL_COMMAND"),
   "codex-voice-input.js should expose the one-command installer"
 );
 assert(
-  userScript.includes("const SCRIPT_VERSION = 103"),
-  "codex-voice-input.js should bump SCRIPT_VERSION for the 1.1.2 release"
+  userScript.includes("const SCRIPT_VERSION = 104"),
+  "codex-voice-input.js should bump SCRIPT_VERSION for the 1.1.3 release"
 );
 assert(
   userScript.includes("PROJECT_URL") &&
