@@ -22,6 +22,22 @@ function Test-Command {
     $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Invoke-GitCommand {
+    param([string[]]$Arguments)
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & git @Arguments 2>&1
+        return @{
+            ExitCode = $LASTEXITCODE
+            Output = $output
+        }
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+}
+
 function Test-ProjectDir {
     param([string]$Path)
     return (
@@ -82,7 +98,12 @@ function Sync-Project {
     if (Test-ProjectDir $ProjectDir) {
         if ($Managed -and (Test-Path (Join-Path $ProjectDir ".git")) -and (Test-Command "git")) {
             Write-Step "Updating existing project: $ProjectDir"
-            & git -C $ProjectDir pull --ff-only
+            $gitResult = Invoke-GitCommand @("-C", $ProjectDir, "pull", "--ff-only")
+            if ($gitResult.ExitCode -eq 0) {
+                $gitResult.Output | Out-Host
+            } else {
+                Write-Step "Unable to update from GitHub; using cached project: $ProjectDir"
+            }
         } else {
             Write-Step "Using existing project: $ProjectDir"
         }
@@ -93,8 +114,12 @@ function Sync-Project {
 
     if (Test-Command "git") {
         Write-Step "Cloning GitHub project to: $ProjectDir"
-        & git clone $RepoUrl $ProjectDir
-        return
+        $gitResult = Invoke-GitCommand @("clone", $RepoUrl, $ProjectDir)
+        if ($gitResult.ExitCode -eq 0) {
+            $gitResult.Output | Out-Host
+            return
+        }
+        Write-Step "Unable to clone with git; trying GitHub archive download"
     }
 
     $zipUrl = $RepoUrl -replace "\.git$", "/archive/refs/heads/master.zip"
@@ -103,7 +128,11 @@ function Sync-Project {
     New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
 
     Write-Step "Downloading GitHub project archive"
-    Invoke-WebRequest -UseBasicParsing -Uri $zipUrl -OutFile $zipPath
+    try {
+        Invoke-WebRequest -UseBasicParsing -Uri $zipUrl -OutFile $zipPath
+    } catch {
+        throw "Unable to download Codex Voice Input from GitHub, and no cached project was found. Check your network or run the installer again from an existing project checkout. Details: $($_.Exception.Message)"
+    }
 
     Write-Step "Extracting project archive"
     Expand-Archive -LiteralPath $zipPath -DestinationPath $tempRoot -Force

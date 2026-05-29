@@ -2,10 +2,18 @@
   "id": "codex-voice-input",
   "name": "Codex Voice Input",
   "description": "Codex 语音输入插件 - 悬浮麦克风按钮，点击录音，自动转文字填入输入框。包含悬浮菜单、一键安装启动和 GitHub 使用说明入口。基于本地 faster-whisper 离线识别，无需联网。",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "author": "",
-  "tags": ["voice", "speech", "whisper", "input", "microphone", "codex", "offline"],
+  "tags": [
+    "voice",
+    "speech",
+    "whisper",
+    "input",
+    "microphone",
+    "codex",
+    "offline"
+  ],
   "homepage": "https://github.com/whishi47/codex-voice-input",
   "script_url": "https://raw.githubusercontent.com/whishi47/codex-voice-input/master/codex-voice-input.js",
-  "sha256": "9c50130cacda78a118d67c490dc3abafc6e7e6ddc1fbafd590d3bd3c8b547b50"
+  "sha256": "401d555d35576ffd9b46556fb2625dcff451fc02fde7133fec267c5c4cbb58c2"
 }

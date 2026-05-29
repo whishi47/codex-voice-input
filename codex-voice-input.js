@@ -7,7 +7,7 @@
   const API_KEY = "__codexVoiceInput";
   const STYLE_ID = "codex-voice-input-style";
   const ROOT_ID = "codex-voice-input";
-  const SCRIPT_VERSION = 102;
+  const SCRIPT_VERSION = 103;
 
   const HELPER_URL = "http://127.0.0.1:17420";
   const TRANSCRIBE_URL = HELPER_URL + "/transcribe";
@@ -16,13 +16,27 @@
   const PROJECT_URL = REPO_URL + "#readme";
   const INSTALL_SCRIPT_URL = REPO_URL + "/raw/master/tools/install-and-start.ps1";
   const INSTALL_POWERSHELL = [
+    "$ErrorActionPreference='Stop';",
     "$localInstaller=Join-Path (Get-Location) 'tools\\install-and-start.ps1';",
+    "$cachedRoot=Join-Path $env:APPDATA 'Codex++\\codex-voice-input';",
+    "$cachedInstaller=Join-Path $cachedRoot 'tools\\install-and-start.ps1';",
+    "$cachedUserScript=Join-Path $cachedRoot 'codex-voice-input.js';",
+    "$cachedHelper=Join-Path $cachedRoot 'tools\\voice-helper.py';",
     "if (Test-Path $localInstaller) {",
     "& powershell -NoProfile -ExecutionPolicy Bypass -File $localInstaller;",
     "} else {",
     "$u='" + INSTALL_SCRIPT_URL + "';",
-    "$p=Join-Path $env:TEMP 'codex-voice-input-install.ps1';",
+    "$p=Join-Path $env:TEMP ('codex-voice-input-install-' + [guid]::NewGuid().ToString('N') + '.ps1');",
+    "try {",
     "Invoke-WebRequest -UseBasicParsing -Uri $u -OutFile $p;",
+    "} catch {",
+    "if ((Test-Path $cachedInstaller) -and (Test-Path $cachedUserScript) -and (Test-Path $cachedHelper)) {",
+    "Write-Host '[Codex Voice Input] 无法从 GitHub 下载安装器，改用本地缓存安装器。' -ForegroundColor Yellow;",
+    "& powershell -NoProfile -ExecutionPolicy Bypass -File $cachedInstaller;",
+    "return;",
+    "}",
+    "throw '无法从 GitHub 下载安装器，也没有找到完整的本地缓存项目。请检查网络，或先在项目目录里运行 tools\\install-and-start.ps1。详细信息: ' + $_.Exception.Message;",
+    "}",
     "& powershell -NoProfile -ExecutionPolicy Bypass -File $p;",
     "}",
   ].join(" ");
